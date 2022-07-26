@@ -12,12 +12,77 @@ const registerUser = async (req, res) => {
   try {
     let files = req.files;
     let data = req.body;
+
+    if (!validator.isValidRequest(data)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Body can not be empty" });
+    }
+
+    
     let { fname, lname, email, profileImage, phone, password, address } = data;
 
+    if(!validator.isValidValue(fname)){
+      return res
+      .status(400)
+      .send({ status: false, message: "Fname is required" });
+    }
+
+    if(!validator.isValidValue(lname)){
+      return res
+      .status(400)
+      .send({ status: false, message: "Lname is required" });
+    }
+
+    if(!validator.isValidValue(email)){
+      return res
+      .status(400)
+      .send({ status: false, message: "Email is required" });
+    }
+
+    let emailExist = await userModel.findOne({email})
+    if(emailExist){
+      return res
+      .status(400)
+      .send({ status: false, message: "This email already exists" });
+    }
+
+    if(Object.keys(data).includes(profileImage)){
+      return res
+      .status(400)
+      .send({ status: false, message: "ProfileImage is required" });
+    }
+
+
+    if(!validator.isValidValue(phone)){
+      return res
+      .status(400)
+      .send({ status: false, message: "Phone is required" });
+    }
+
+    let phoneExist = await userModel.findOne({phone})
+    if(phoneExist){
+      return res
+      .status(400)
+      .send({ status: false, message: "Phone number already exists" });
+    }
+
+    if(!validator.isValidValue(password)){
+      return res
+      .status(400)
+      .send({ status: false, message: "password is required" });
+    }
+
+    if(files.length>0){
     data.profileImage = await aws_config.uploadFile(files[0]);
+    }
+    else{
+      return res
+      .status(400)
+      .send({ status: false, message: "ProfileImage File is required" });
+    }
 
     data.password = await bcrypt.hash(password, saltRounds);
-    //data.password = encryptedPassword;
 
     let savedData = await userModel.create(data);
     return res
@@ -38,7 +103,7 @@ let login = async (req, res) => {
       let data = req.body;
       const { email, password } = data;
   
-      if (!Object.keys(data).length) {
+      if (!validator.isValidRequest(data)) {
         return res
           .status(400)
           .send({ status: false, message: "email & password must be given" });
@@ -47,27 +112,33 @@ let login = async (req, res) => {
       if (!validator.isValidValue(email)) {
         return res
           .status(400)
-          .send({ status: false, messgage: "email is required " });
+          .send({ status: false, messgage: "Email is required " });
       }
   
       let checkemail = await userModel.findOne({ email });
-  
+      
+      if (!checkemail) {
+        return res
+          .status(404)
+          .send({ status: false, message: "Email not found" });
+      }
+
       if (!validator.isValidValue(password)) {
         return res
           .status(400)
-          .send({ status: false, messsge: "password is required" });
+          .send({ status: false, messsge: "Password is required" });
       }
-  
+    
       // Load hash from your password DB.
       let decryptPassword = await bcrypt.compare(password, checkemail.password);
   
-      if (!checkemail || !decryptPassword) {
+      if (!decryptPassword) {
         return res
           .status(401)
-          .send({ status: false, message: "email or password is not correct" });
+          .send({ status: false, message: "Password is not correct" });
       }
   
-  
+
       /*-------------------------------------------GENERATE TOKEN----------------------------------------------*/
   
       let date = Date.now();
