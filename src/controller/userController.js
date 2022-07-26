@@ -19,67 +19,95 @@ const registerUser = async (req, res) => {
         .send({ status: false, message: "Body can not be empty" });
     }
 
-    
     let { fname, lname, email, profileImage, phone, password, address } = data;
 
-    if(!validator.isValidValue(fname)){
+    if (!validator.isValidValue(fname)) {
       return res
-      .status(400)
-      .send({ status: false, message: "Fname is required" });
+        .status(400)
+        .send({ status: false, message: "Fname is required" });
     }
 
-    if(!validator.isValidValue(lname)){
+    if (!validator.isValidName(fname)) {
       return res
-      .status(400)
-      .send({ status: false, message: "Lname is required" });
+        .status(400)
+        .send({ status: false, message: "Fname may contain only letters" });
     }
 
-    if(!validator.isValidValue(email)){
+    if (!validator.isValidValue(lname)) {
       return res
-      .status(400)
-      .send({ status: false, message: "Email is required" });
+        .status(400)
+        .send({ status: false, message: "Lname is required" });
     }
 
-    let emailExist = await userModel.findOne({email})
-    if(emailExist){
+    if (!validator.isValidName(lname)) {
       return res
-      .status(400)
-      .send({ status: false, message: "This email already exists" });
+        .status(400)
+        .send({ status: false, message: "Lname may contain only letters" });
     }
 
-    if(Object.keys(data).includes(profileImage)){
+    if (!validator.isValidValue(email)) {
       return res
-      .status(400)
-      .send({ status: false, message: "ProfileImage is required" });
+        .status(400)
+        .send({ status: false, message: "Email is required" });
     }
 
-
-    if(!validator.isValidValue(phone)){
+    if (!validator.isValidEmail(email)) {
       return res
-      .status(400)
-      .send({ status: false, message: "Phone is required" });
+        .status(400)
+        .send({ status: false, message: "Entered email is invalid" });
     }
 
-    let phoneExist = await userModel.findOne({phone})
-    if(phoneExist){
+    let emailExist = await userModel.findOne({ email });
+    if (emailExist) {
       return res
-      .status(400)
-      .send({ status: false, message: "Phone number already exists" });
+        .status(400)
+        .send({ status: false, message: "This email already exists" });
     }
 
-    if(!validator.isValidValue(password)){
+    if (Object.keys(data).includes(profileImage)) {
       return res
-      .status(400)
-      .send({ status: false, message: "password is required" });
+        .status(400)
+        .send({ status: false, message: "ProfileImage is required" });
     }
 
-    if(files.length>0){
-    data.profileImage = await aws_config.uploadFile(files[0]);
-    }
-    else{
+    if (!validator.isValidValue(phone)) {
       return res
-      .status(400)
-      .send({ status: false, message: "ProfileImage File is required" });
+        .status(400)
+        .send({ status: false, message: "Phone is required" });
+    }
+
+    if (!validator.isValidPhone(phone)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Entered phone number is invalid" });
+    }
+
+    let phoneExist = await userModel.findOne({ phone });
+    if (phoneExist) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Phone number already exists" });
+    }
+
+    if (!validator.isValidValue(password)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "password is required" });
+    }
+
+    if (password.length < 8 || password.length > 15) {
+      return res.status(400).send({
+        status: false,
+        message: "password length should be between 8 to 15",
+      });
+    }
+
+    if (files.length > 0) {
+      data.profileImage = await aws_config.uploadFile(files[0]);
+    } else {
+      return res
+        .status(400)
+        .send({ status: false, message: "ProfileImage File is required" });
     }
 
     data.password = await bcrypt.hash(password, saltRounds);
@@ -95,83 +123,80 @@ const registerUser = async (req, res) => {
   }
 };
 
-
 /************************************************LOGIN API**********************************************/
 
 let login = async (req, res) => {
-    try {
-      let data = req.body;
-      const { email, password } = data;
-  
-      if (!validator.isValidRequest(data)) {
-        return res
-          .status(400)
-          .send({ status: false, message: "email & password must be given" });
-      }
-  
-      if (!validator.isValidValue(email)) {
-        return res
-          .status(400)
-          .send({ status: false, messgage: "Email is required " });
-      }
-  
-      let checkemail = await userModel.findOne({ email });
-      
-      if (!checkemail) {
-        return res
-          .status(404)
-          .send({ status: false, message: "Email not found" });
-      }
+  try {
+    let data = req.body;
+    const { email, password } = data;
 
-      if (!validator.isValidValue(password)) {
-        return res
-          .status(400)
-          .send({ status: false, messsge: "Password is required" });
-      }
-    
-      // Load hash from your password DB.
-      let decryptPassword = await bcrypt.compare(password, checkemail.password);
-  
-      if (!decryptPassword) {
-        return res
-          .status(401)
-          .send({ status: false, message: "Password is not correct" });
-      }
-  
-
-      /*-------------------------------------------GENERATE TOKEN----------------------------------------------*/
-  
-      let date = Date.now();
-      let createTime = Math.floor(date / 1000);
-      let expTime = createTime + 3000;
-  
-      let token = jwt.sign(
-        {
-          userId: checkemail._id.toString(),
-          iat: createTime,
-          exp: expTime,
-        },
-        "group40"
-      );
-  
-      res.setHeader("x-api-key", token);
-      return res.status(200).send({
-        status: true,
-        message: "User login successful",
-        data: { userId: checkemail._id, token: token },
-      });
-    } catch (err) {
-      res.status(500).send({ status: false, message: err.message });
+    if (!validator.isValidRequest(data)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "email & password must be given" });
     }
-  };
 
+    if (!validator.isValidValue(email)) {
+      return res
+        .status(400)
+        .send({ status: false, messgage: "Email is required " });
+    }
+
+    let checkemail = await userModel.findOne({ email });
+
+    if (!checkemail) {
+      return res
+        .status(404)
+        .send({ status: false, message: "Email not found" });
+    }
+
+    if (!validator.isValidValue(password)) {
+      return res
+        .status(400)
+        .send({ status: false, messsge: "Password is required" });
+    }
+
+    // Load hash from your password DB.
+    let decryptPassword = await bcrypt.compare(password, checkemail.password);
+
+    if (!decryptPassword) {
+      return res
+        .status(401)
+        .send({ status: false, message: "Password is not correct" });
+    }
+
+    /*-------------------------------------------GENERATE TOKEN----------------------------------------------*/
+
+    let date = Date.now();
+    let createTime = Math.floor(date / 1000);
+    let expTime = createTime + 3000;
+
+    let token = jwt.sign(
+      {
+        userId: checkemail._id.toString(),
+        iat: createTime,
+        exp: expTime,
+      },
+      "group40"
+    );
+
+    res.setHeader("x-api-key", token);
+    return res.status(200).send({
+      status: true,
+      message: "User login successful",
+      data: { userId: checkemail._id, token: token },
+    });
+  } catch (err) {
+    res.status(500).send({ status: false, message: err.message });
+  }
+};
 
 /************************************************GET USER API*********************************************/
 
 const getUserDetails = async (req, res) => {
   try {
     const userId = req.params.userId;
-    if (!mongoose.isValidObjectId(userId))
+    if (!validator.isValidObjectId(userId))
       return res.status(400).send({
         status: false,
         message: "Please enter a valid User Id",
@@ -205,42 +230,113 @@ const getUserDetails = async (req, res) => {
 
 /************************************************UPDATE API*********************************************/
 
-const userUpdation = async (req, res)=> {
+const userUpdation = async (req, res) => {
   try {
     let userId = req.params.userId;
 
-    if (!mongoose.isValidObjectId(userId))
+    if (!validator.isValidObjectId(userId))
       return res
         .status(400)
-        .send({ status: false, message: "write valid ObjectId in params" });
+        .send({ status: false, message: "Enter valid ObjectId in params" });
+
     let data = req.body;
     let files = req.files;
 
     let { fname, lname, email, profileImage, phone, password, address } = data;
-    
 
-    data.profileImage = await aws_config.uploadFile(files[0]);
 
-    let updateData = await userModel.findOneAndUpdate({ _id: userId },
-      { address, fname, lname, email,profileImage, phonepassword },{ new: true });
-      
+    if (Object.keys(data).includes("fname")) {
+      if (!validator.isValidValue(fname)) {
+        return res
+          .status(400)
+          .send({ status: false, message: "Fname can not be empty" });
+      }
+      if (!validator.isValidName(fname)) {
+        return res
+          .status(400)
+          .send({ status: false, message: "Fname may contain only letters" });
+      }
+    }
+
+    if (Object.keys(data).includes("lname")) {
+      if (!validator.isValidValue(lname)) {
+        return res
+          .status(400)
+          .send({ status: false, message: "Lname can not be empty" });
+      }
+      if (!validator.isValidName(lname)) {
+        return res
+          .status(400)
+          .send({ status: false, message: "Lname may contain only letters" });
+      }
+    }
+
+    if (email) {
+      if (!validator.isValidEmail(email)) {
+        return res
+          .status(400)
+          .send({ status: false, message: "Entered email is invalid" });
+      }
+    }
+
+    let emailExist = await userModel.findOne({ email });
+    if (emailExist) {
+      return res
+        .status(400)
+        .send({ status: false, message: "This email already exists" });
+    }
+
+    if (phone) {
+      if (!validator.isValidEmail(phone)) {
+        return res
+          .status(400)
+          .send({ status: false, message: "Entered phone number is invalid" });
+      }
+    }
+
+    let phoneExist = await userModel.findOne({ phone });
+    if (phoneExist) {
+      return res
+        .status(400)
+        .send({ status: false, message: "This phone number already exists" });
+    }
+
+    if (password) {
+      if (password.length < 8 || password.length > 15) {
+        return res.status(400).send({
+          status: false,
+          message: "password length should be between 8 to 15",
+        });
+      }
+    }
+
+    if(profileImage){
+    if (files.length > 0) {
+      data.profileImage = await aws_config.uploadFile(files[0]);
+    }
+}
+
+
+    let updateData = await userModel.findOneAndUpdate(
+      { _id: userId },
+      { address, fname, lname, email, profileImage, phone, password },
+      { new: true }
+    );
+
     if (!updateData)
-      return res.status(404).send({ status: false, message: "No user record found" });
+      return res
+        .status(404)
+        .send({ status: false, message: "No user record found" });
 
-    return res
-      .status(200)
-      .send({
-        status: true,
-        message: "User profile updated",
-        data: updateData,
-      });
+    return res.status(200).send({
+      status: true,
+      message: "User profile updated",
+      data: updateData,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).send({ status: false, message: error.message });
   }
 };
-
-
-
 
 module.exports = { registerUser, login, getUserDetails, userUpdation };

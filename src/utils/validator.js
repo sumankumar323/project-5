@@ -1,5 +1,7 @@
+const mongoose = require('mongoose')
+
 //request body validation
-const isValidRequest = (el) => Object.keys(el).length > 0;
+const isValidRequest = (value) => Object.keys(value).length > 0;
 
 //value validation
 const isValidValue = function (value) {
@@ -9,8 +11,24 @@ const isValidValue = function (value) {
   return true;
 };
 
+const isValidObjectId = function(value){
+  return mongoose.isValidObjectId(value)
+}
 
 
-//const isValidObjectId = (el)
+const isValidName = function(value){
+  return /^\w[a-zA-Z.,\s]*$/.test(value)
+}
 
-module.exports={isValidRequest,isValidValue}
+const isValidEmail = function(value){
+  return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(value)
+}
+
+const isValidPhone = function(value){
+  return /^[6-9]\d{9}$/.test(value)
+}
+
+
+
+
+module.exports={isValidRequest, isValidValue ,isValidObjectId, isValidName, isValidEmail, isValidPhone}
