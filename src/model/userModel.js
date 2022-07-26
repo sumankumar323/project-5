@@ -1,6 +1,5 @@
 let mongoose = require("mongoose");
 
-
 let userSchema = new mongoose.Schema(
   {
     fname: { type: String, required: true },
@@ -16,16 +15,9 @@ let userSchema = new mongoose.Schema(
         pincode: { type: String, required: true },
       },
       billing: {
-        street: {
-          type: String,
-          required: true,
-     city: { type: String,
-         required: true 
-        },
-     pincode: { type: String,
-         required: true 
-        },
-        },
+        street: { type: String, required: true },
+        city: { type: String, required: true },
+        pincode: { type: String, required: true },
       },
     },
   },

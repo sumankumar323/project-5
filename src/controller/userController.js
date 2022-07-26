@@ -14,11 +14,10 @@ const registerUser = async (req, res) => {
     let data = req.body;
     let { fname, lname, email, profileImage, phone, password, address } = data;
 
-    profileImage = await aws_config.uploadFile(files[0]);
-    data.profileImage = profileImage;
+    data.profileImage = await aws_config.uploadFile(files[0]);
 
-    const encryptedPassword = await bcrypt.hash(password, saltRounds);
-    data.password = encryptedPassword;
+    data.password = await bcrypt.hash(password, saltRounds);
+    //data.password = encryptedPassword;
 
     let savedData = await userModel.create(data);
     return res
@@ -34,7 +33,7 @@ const registerUser = async (req, res) => {
 
 /************************************************LOGIN API**********************************************/
 
-let login = async function (req, res) {
+let login = async (req, res) => {
     try {
       let data = req.body;
       const { email, password } = data;
@@ -110,18 +109,18 @@ const getUserDetails = async (req, res) => {
     const profile = await userModel.findOne({ _id: userId });
 
     if (!profile)
-      return res.status(400).send({
+      return res.status(404).send({
         status: false,
         message: "User Id doesn't exist.Please enter another Id",
       });
 
     if (profile._id.toString() !== req.userId)
-      return res.status(400).send({
+      return res.status(403).send({
         status: false,
         message: "Unauthorized access! User's info doesn't match",
       });
 
-    return res.status(400).send({
+    return res.status(200).send({
       status: true,
       message: "User record found",
       data: profile,
@@ -155,7 +154,7 @@ const userUpdation = async (req, res)=> {
       { address, fname, lname, email,profileImage, phonepassword },{ new: true });
       
     if (!updateData)
-      return res.status(404).send({ status: false, message: "no user found" });
+      return res.status(404).send({ status: false, message: "No user record found" });
 
     return res
       .status(200)
