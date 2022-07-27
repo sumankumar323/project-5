@@ -11,12 +11,17 @@ router.get("/user/:userId/profile", middleware.Authentication, userController.ge
 router.put("/user/:userId/profile", middleware.Authentication, userController.userUpdation)
 
 
-//PRODUCT API
+//PRODUCT API (No Authentication)
+router.post("/products",productController.createProduct)
 router.get("/products/:productId",productController.getProductById)
 router.get("/products",productController.getProductsByFilters)
-router.put("/products/:productId",productController.productUpdation)
+router.put("/products/:productId",productController.updateProduct)
 router.delete("/products/:productId",productController.deleteByProductId )
 
+
+//ORDER API
+
+//CART API
 
 
 

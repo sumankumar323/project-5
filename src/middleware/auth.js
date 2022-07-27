@@ -11,10 +11,6 @@ module.exports.Authentication = function (req, res, next) {
 
     let token = req.headers.authorization.split(" ")[1]
 
-    // if (!token) {
-    //   return res.status(401).send({ status: false, message: "Missing authentication token in request " });
-    // }
-
     const decoded = jwt.decode(token);
    
     if (!decoded) {
