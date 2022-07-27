@@ -10,6 +10,10 @@ const isValidValue = function (value) {
   if (typeof value === "number") return false;
   return true;
 };
+const isValidNumber = function (value) {
+  if (typeof value === "number" && value!== NaN) return true;
+  return false;
+};
 
 const isValidObjectId = function(value){
   return mongoose.isValidObjectId(value)
@@ -31,4 +35,4 @@ const isValidPhone = function(value){
 
 
 
-module.exports={isValidRequest, isValidValue ,isValidObjectId, isValidName, isValidEmail, isValidPhone}
+module.exports={isValidRequest, isValidValue ,isValidNumber , isValidObjectId, isValidName, isValidEmail, isValidPhone}
