@@ -101,6 +101,115 @@ const registerUser = async (req, res) => {
         message: "password length should be between 8 to 15",
       });
     }
+    data.password = await bcrypt.hash(password, saltRounds);
+
+    //ADDRESS VALIDATION
+
+    if (!validator.isValidValue(address)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Address is required" });
+    }
+
+    //shipping address validation
+    if (address.shipping) {
+      if (address.shipping.street) {
+        if (!validator.isValidRequest(address.shipping.street)) {
+          return res.status(400).send({
+            status: false,
+            message: "Shipping address's Street Required",
+          });
+        }
+      } else {
+        return res.status(400).send({
+          status: false,
+          message:
+            " Invalid request parameters. Shipping address's street cannot be empty",
+        });
+      }
+
+      if (address.shipping.city) {
+        if (!validator.isValidRequest(address.shipping.city)) {
+          return res
+            .status(400)
+            .send({ status: false, message: "Shipping address city Required" });
+        }
+      } else {
+        return res.status(400).send({
+          status: false,
+          message:
+            "Invalid request parameters. Shipping address's city cannot be empty",
+        });
+      }
+      if (address.shipping.pincode) {
+        if (!validator.isValidRequest(address.shipping.pincode)) {
+          return res.status(400).send({
+            status: false,
+            message: "Shipping address's pincode Required",
+          });
+        }
+      } else {
+        return res.status(400).send({
+          status: false,
+          message:
+            "Invalid request parameters. Shipping address's pincode cannot be empty",
+        });
+      }
+    } else {
+      return res
+        .status(400)
+        .send({ status: false, message: "Shipping address cannot be empty." });
+    }
+    // Billing Address validation
+    if (address.billing) {
+      if (address.billing.street) {
+        if (!validator.isValidRequest(address.billing.street)) {
+          return res.status(400).send({
+            status: false,
+            message: "Billing address's Street Required",
+          });
+        }
+      } else {
+        return res.status(400).send({
+          status: false,
+          message:
+            " Invalid request parameters. Billing address's street cannot be empty",
+        });
+      }
+      if (address.billing.city) {
+        if (!validator.isValidRequest(address.billing.city)) {
+          return res.status(400).send({
+            status: false,
+            message: "Billing address's city Required",
+          });
+        }
+      } else {
+        return res.status(400).send({
+          status: false,
+          message:
+            "Invalid request parameters. Billing address's city cannot be empty",
+        });
+      }
+      if (address.billing.pincode) {
+        if (!validator.isValidRequest(address.billing.pincode)) {
+          return res.status(400).send({
+            status: false,
+            message: "Billing address's pincode Required ",
+          });
+        }
+      } else {
+        return res.status(400).send({
+          status: false,
+          message:
+            "Invalid request parameters. Billing address's pincode cannot be empty",
+        });
+      }
+    } else {
+      return res
+        .status(400)
+        .send({ status: false, message: "Billing address cannot be empty." });
+    }
+    //validation ends
 
     if (files.length > 0) {
       data.profileImage = await aws_config.uploadFile(files[0]);
@@ -109,8 +218,6 @@ const registerUser = async (req, res) => {
         .status(400)
         .send({ status: false, message: "ProfileImage File is required" });
     }
-
-    data.password = await bcrypt.hash(password, saltRounds);
 
     let savedData = await userModel.create(data);
     return res
@@ -239,11 +346,24 @@ const userUpdation = async (req, res) => {
         .status(400)
         .send({ status: false, message: "Enter valid ObjectId in params" });
 
+    const profile = await userModel.findOne({ _id: userId });
+
+    if (!profile)
+      return res.status(404).send({
+        status: false,
+        message: "User Id doesn't exist.Please enter another Id",
+      });
+
+    if (profile._id.toString() !== req.userId)
+      return res.status(403).send({
+        status: false,
+        message: "Unauthorized access! User's info doesn't match",
+      });
+
     let data = req.body;
     let files = req.files;
 
     let { fname, lname, email, profileImage, phone, password, address } = data;
-
 
     if (Object.keys(data).includes("fname")) {
       if (!validator.isValidValue(fname)) {
@@ -271,11 +391,11 @@ const userUpdation = async (req, res) => {
       }
     }
 
-    if (email) {
+    if (Object.keys(data).includes("email"))  {
       if (!validator.isValidEmail(email)) {
         return res
           .status(400)
-          .send({ status: false, message: "Entered email is invalid" });
+          .send({ status: false, message: "Entered email is invalid or empty" });
       }
     }
 
@@ -286,11 +406,11 @@ const userUpdation = async (req, res) => {
         .send({ status: false, message: "This email already exists" });
     }
 
-    if (phone) {
-      if (!validator.isValidEmail(phone)) {
+    if (Object.keys(data).includes("phone"))  {
+      if (!validator.isValidPhone(phone)) {
         return res
           .status(400)
-          .send({ status: false, message: "Entered phone number is invalid" });
+          .send({ status: false, message: "Entered phone number is invalid or empty" });
       }
     }
 
@@ -301,7 +421,13 @@ const userUpdation = async (req, res) => {
         .send({ status: false, message: "This phone number already exists" });
     }
 
-    if (password) {
+    if (Object.keys(data).includes("password")) {
+      if (!validator.isValidValue(password)) {
+        return res
+          .status(400)
+          .send({ status: false, message: "Password can not be empty" });
+      }
+
       if (password.length < 8 || password.length > 15) {
         return res.status(400).send({
           status: false,
@@ -309,25 +435,24 @@ const userUpdation = async (req, res) => {
         });
       }
     }
+    password = await bcrypt.hash(password, saltRounds);
+    //console.log(password,data.password)
 
-    if(profileImage){
-    if (files.length > 0) {
-      data.profileImage = await aws_config.uploadFile(files[0]);
+    if (Object.keys(data).includes("profileImage")) {
+      if (files.length==0) {
+        return res.status(400).send({
+          status: false,
+          message: "There is no file to update",
+        });
+      }
     }
-}
 
-
-    let updateData = await userModel.findOneAndUpdate(
+    let updateData = await userModel.findByIdAndUpdate(
       { _id: userId },
       { address, fname, lname, email, profileImage, phone, password },
-      { new: true }
+      { new: true, upsert: true }
     );
-
-    if (!updateData)
-      return res
-        .status(404)
-        .send({ status: false, message: "No user record found" });
-
+    
     return res.status(200).send({
       status: true,
       message: "User profile updated",
