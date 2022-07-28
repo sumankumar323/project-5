@@ -11,7 +11,7 @@ const isValidValue = function (value) {
   return true;
 };
 const isValidNumber = function (value) {
-  if (typeof value === "number" && value!== NaN) return true;
+  if (Number(value) && value!== NaN) return true;
   return false;
 };
 

@@ -23,6 +23,7 @@ const createProduct = async (req, res) => {
       currencyFormat,
       productImage,
       availableSizes,
+      installments
     } = data;
 
     if (!validator.isValidValue(title)) {
@@ -30,10 +31,14 @@ const createProduct = async (req, res) => {
         .status(400)
         .send({ status: false, message: "title is required" });
     }
-    const isDuplicate = await productModel.find({ title: title });
-    if (isDuplicate.length == 0) {
-      data.title = title;
-    } else {
+
+    if(validator.isValidNumber(title)){
+      return res
+        .status(400)
+        .send({ status: false, message: "title must contain letters" });
+    }
+    const isDuplicate = await productModel.find({ title});
+    if (isDuplicate.length > 0) {
       return res.status(400).send({
         status: false,
         message: "This title is already present ",
@@ -45,26 +50,34 @@ const createProduct = async (req, res) => {
         .status(400)
         .send({ status: false, message: "description is required" });
     }
-    if (!validator.isValidValue(price)) {
+    if (!validator.isValidNumber(price)) {
       return res
         .status(400)
-        .send({ status: false, message: "price is required" });
+        .send({ status: false, message: "price is required & it must be a valid number" });
     }
     if (!validator.isValidValue(currencyId)) {
       return res
         .status(400)
         .send({ status: false, message: "currencyId is required" });
     }
+    if(currencyId!=='INR'){
+      return res
+        .status(400)
+        .send({ status: false, message: "currencyId must be INR" });
+    }
+
     if (!validator.isValidValue(currencyFormat)) {
       return res
         .status(400)
         .send({ status: false, message: "currencyFormat is required" });
     }
-    console.log(productImage);
-    if (Object.keys(data).includes(productImage)) {
+
+    if (currencyFormat) {
+     if(currencyFormat!=='₹'){
       return res
         .status(400)
-        .send({ status: false, message: "ProductImage is required" });
+        .send({ status: false, message: "currencyFormat must be ₹ " });
+     }
     }
 
     if (files.length > 0) {
@@ -74,18 +87,40 @@ const createProduct = async (req, res) => {
         .status(400)
         .send({ status: false, message: "ProductImage File is required" });
     }
+
     if (!validator.isValidValue(availableSizes)) {
       return res
         .status(400)
         .send({ status: false, message: "availableSizes is required" });
     }
-    if (!["S", "XS", "M", "X", "L", "XXL", "XL"].includes(availableSizes)) {
-      return res
+
+
+    if (availableSizes) {
+      let array = availableSizes.split(",").map((x) => x.trim());
+
+      for (let i = 0; i < array.length; i++) {
+        if (!["S", "XS", "M", "X", "L", "XXL", "XL"].includes(array[i])) {
+          return res.status(400).send({
+              status: false,
+              message: `Available Sizes must be among ${[ "S", "XS", "M", "X", "L", "XXL", "XL" ]}`,
+            });
+        }
+      }
+      if (Array.isArray(array)) {
+        data["availableSizes"] = array;
+      }
+    }
+
+
+
+
+    if (installments) {
+      if(!validator.isValidNumber(installments)){
+        return res
         .status(400)
-        .send({
-          status: false,
-          message: 'title must be "S", "XS","M","X", "L","XXL", "XL" ',
-        });
+        .send({ status: false, message: "installments must be a valid number" });
+      }
+      
     }
 
     let savedData = await productModel.create(data);
@@ -132,7 +167,7 @@ const getProductsByFilters = async (req, res) => {
     let data = req.query;
     const { size, name, priceGreaterThan, priceLessThan, priceSort } = data;
     const filterData = { isDeleted: false };
-    let priceSortValue = 1;
+  
 
     if (data.hasOwnProperty("size")) {
       if (!validator.isValidValue(size)) {
@@ -203,7 +238,7 @@ const getProductsByFilters = async (req, res) => {
       }
     }
 
-    console.log(filterData);
+   
 
     let findData = await productModel
       .find(filterData)
