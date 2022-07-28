@@ -318,7 +318,7 @@ const updateProduct = async (req, res) => {
       }
       const isDuplicate = await productModel.findOne({ title: data.title });
 
-      if (Object.keys(isDuplicate).length>0) {
+      if (isDuplicate) {
         return res.status(400).send({
           status: false,
           message: "This title is already present ",
@@ -399,7 +399,7 @@ const updateProduct = async (req, res) => {
 
 
     if (files.length > 0) {
-      productImage = await aws_config.uploadFile(files[0]);
+      data.productImage = await aws_config.uploadFile(files[0]);
     }
 
     let updateData = await productModel.findOneAndUpdate(
