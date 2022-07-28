@@ -19,7 +19,7 @@ const registerUser = async (req, res) => {
         .send({ status: false, message: "Body can not be empty" });
     }
 
-    let { fname, lname, email, profileImage, phone, password, address } = data;
+    let { fname, lname, email, profileImage, phone, password } = data;
 
     if (!validator.isValidValue(fname)) {
       return res
@@ -105,111 +105,197 @@ const registerUser = async (req, res) => {
 
     //ADDRESS VALIDATION
 
-    if (!validator.isValidValue(address)) {
-      return res
-        .status(400)
-        .send({ status: false, message: "Address is required" });
-    }
+    // if (!validator.isValidValue(data.address)) {
+    //   return res
+    //     .status(400)
+    //     .send({ status: false, message: "Address is required" });
+    // }
+    // address = JSON.parse(data.address)
+    // console.log(address)
+    // //shipping address validation
+    // if (address.shipping) {
+    //   if (address.shipping.street) {
+    //     if (!validator.isValidRequest(address.shipping.street)) {
+    //       return res.status(400).send({
+    //         status: false,
+    //         message: "Shipping address's Street Required",
+    //       });
+    //     }
+    //   } else {
+    //     return res.status(400).send({
+    //       status: false,
+    //       message:
+    //         " Invalid request parameters. Shipping address's street cannot be empty",
+    //     });
+    //   }
 
-    //shipping address validation
-    if (address.shipping) {
-      if (address.shipping.street) {
-        if (!validator.isValidRequest(address.shipping.street)) {
-          return res.status(400).send({
-            status: false,
-            message: "Shipping address's Street Required",
-          });
-        }
-      } else {
-        return res.status(400).send({
-          status: false,
-          message:
-            " Invalid request parameters. Shipping address's street cannot be empty",
-        });
-      }
+    //   if (address.shipping.city) {
+    //     if (!validator.isValidRequest(address.shipping.city)) {
+    //       return res
+    //         .status(400)
+    //         .send({ status: false, message: "Shipping address city Required" });
+    //     }
+    //   } else {
+    //     return res.status(400).send({
+    //       status: false,
+    //       message:
+    //         "Invalid request parameters. Shipping address's city cannot be empty",
+    //     });
+    //   }
+    //   if (address.shipping.pincode) {
+    //     if (!validator.isValidRequest(address.shipping.pincode)) {
+    //       return res.status(400).send({
+    //         status: false,
+    //         message: "Shipping address's pincode Required",
+    //       });
+    //     }
+    //   } else {
+    //     return res.status(400).send({
+    //       status: false,
+    //       message:
+    //         "Invalid request parameters. Shipping address's pincode cannot be empty",
+    //     });
+    //   }
+    // } else {
+    //   return res
+    //     .status(400)
+    //     .send({ status: false, message: "Shipping address cannot be empty." });
+    // }
+    // // Billing Address validation
+    // if (address.billing) {
+    //   if (address.billing.street) {
+    //     if (!validator.isValidRequest(address.billing.street)) {
+    //       return res.status(400).send({
+    //         status: false,
+    //         message: "Billing address's Street Required",
+    //       });
+    //     }
+    //   } else {
+    //     return res.status(400).send({
+    //       status: false,
+    //       message:
+    //         " Invalid request parameters. Billing address's street cannot be empty",
+    //     });
+    //   }
+    //   if (address.billing.city) {
+    //     if (!validator.isValidRequest(address.billing.city)) {
+    //       return res.status(400).send({
+    //         status: false,
+    //         message: "Billing address's city Required",
+    //       });
+    //     }
+    //   } else {
+    //     return res.status(400).send({
+    //       status: false,
+    //       message:
+    //         "Invalid request parameters. Billing address's city cannot be empty",
+    //     });
+    //   }
+    //   if (address.billing.pincode) {
+    //     if (!validator.isValidRequest(address.billing.pincode)) {
+    //       return res.status(400).send({
+    //         status: false,
+    //         message: "Billing address's pincode Required ",
+    //       });
+    //     }
+    //   } else {
+    //     return res.status(400).send({
+    //       status: false,
+    //       message:
+    //         "Invalid request parameters. Billing address's pincode cannot be empty",
+    //     });
+    //   }
+    // } else {
+    //   return res
+    //     .status(400)
+    //     .send({ status: false, message: "Billing address cannot be empty." });
+    // }
 
-      if (address.shipping.city) {
-        if (!validator.isValidRequest(address.shipping.city)) {
-          return res
-            .status(400)
-            .send({ status: false, message: "Shipping address city Required" });
-        }
-      } else {
-        return res.status(400).send({
-          status: false,
-          message:
-            "Invalid request parameters. Shipping address's city cannot be empty",
-        });
+
+
+
+
+
+    if (!data.address) {
+      return res.status(400).send({ status: false, message: "address required" })
+  }
+console.log(data.address,typeof data.address)
+
+//   if(Object.keys(data.address).length<1){
+//     return res.status(400).send({ status: false, message: "address is not in object format" })
+// }
+      let address = JSON.parse(data.address)
+    
+
+  if (!address.shipping || !address.billing) {
+      return res.status(400).send({ status: false, message: "shipping and billing address required" })
+
+  }
+  
+  if (!address.shipping.street || !address.billing.street) {
+      return res.status(400).send({ status: false, message: "street is  required " })
+
+  }
+  if (!address.shipping.city || !address.billing.city) {
+      return res.status(400).send({ status: false, message: "city is  required" })
+
+  }
+  if (!address.shipping.pincode || !address.billing.pincode) {
+      return res.status(400).send({ status: false, message: "pincode is  required " })
+
+  }
+  
+  let Sstreet = address.shipping.street
+  let Scity = address.shipping.city
+  let Spincode = parseInt(address.shipping.pincode)     //shipping
+  if (Sstreet) {
+      let validateStreet = /^[a-zA-Z0-9]/
+      if (!validateStreet.test(Sstreet)) {
+          return res.status(400).send({ status: false, message: "enter valid street name in shipping" })
       }
-      if (address.shipping.pincode) {
-        if (!validator.isValidRequest(address.shipping.pincode)) {
-          return res.status(400).send({
-            status: false,
-            message: "Shipping address's pincode Required",
-          });
-        }
-      } else {
-        return res.status(400).send({
-          status: false,
-          message:
-            "Invalid request parameters. Shipping address's pincode cannot be empty",
-        });
+  }
+
+  if (Scity) {
+      let validateCity = /^[a-zA-Z0-9]/
+      if (!validateCity.test(Scity)) {
+          return res.status(400).send({ status: false, message: "enter valid city name in shipping" })
       }
-    } else {
-      return res
-        .status(400)
-        .send({ status: false, message: "Shipping address cannot be empty." });
-    }
-    // Billing Address validation
-    if (address.billing) {
-      if (address.billing.street) {
-        if (!validator.isValidRequest(address.billing.street)) {
-          return res.status(400).send({
-            status: false,
-            message: "Billing address's Street Required",
-          });
-        }
-      } else {
-        return res.status(400).send({
-          status: false,
-          message:
-            " Invalid request parameters. Billing address's street cannot be empty",
-        });
+  }
+  if (Spincode) {
+      let validatePincode = /^[1-9]{1}[0-9]{2}\s{0,1}[0-9]{3}$/     //must not start with 0,6 digits and space(optional)
+      if (!validatePincode.test(Spincode)) {
+          return res.status(400).send({ status: false, message: "enter valid pincode in shipping" })
       }
-      if (address.billing.city) {
-        if (!validator.isValidRequest(address.billing.city)) {
-          return res.status(400).send({
-            status: false,
-            message: "Billing address's city Required",
-          });
-        }
-      } else {
-        return res.status(400).send({
-          status: false,
-          message:
-            "Invalid request parameters. Billing address's city cannot be empty",
-        });
+  }
+
+
+  let Bstreet = address.billing.street
+  let Bcity = address.billing.city                             //billing
+  let Bpincode = parseInt(address.billing.pincode)
+  if (Bstreet) {
+      let validateStreet = /^[a-zA-Z0-9]/
+      if (!validateStreet.test(Bstreet)) {
+          return res.status(400).send({ status: false, message: "enter valid street name in shipping" })
       }
-      if (address.billing.pincode) {
-        if (!validator.isValidRequest(address.billing.pincode)) {
-          return res.status(400).send({
-            status: false,
-            message: "Billing address's pincode Required ",
-          });
-        }
-      } else {
-        return res.status(400).send({
-          status: false,
-          message:
-            "Invalid request parameters. Billing address's pincode cannot be empty",
-        });
+  }
+
+  if (Bcity) {
+      let validateCity = /^[a-zA-Z0-9]/
+      if (!validateCity.test(Bcity)) {
+          return res.status(400).send({ status: false, message: "enter valid city name in shipping" })
       }
-    } else {
-      return res
-        .status(400)
-        .send({ status: false, message: "Billing address cannot be empty." });
-    }
+  }
+  if (Bpincode) {
+      let validatePincode = /^[1-9]{1}[0-9]{2}\s{0,1}[0-9]{3}$/     //must not start with 0,6 digits and space(optional)
+      if (!validatePincode.test(Bpincode)) {
+          return res.status(400).send({ status: false, message: "enter valid pincode in shipping" })
+      }
+  }
+  
+  data.address = address
+
     //validation ends
+
 
     if (files.length > 0) {
       data.profileImage = await aws_config.uploadFile(files[0]);
