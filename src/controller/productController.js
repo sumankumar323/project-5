@@ -21,11 +21,11 @@ const createProduct = async (req, res) => {
       price,
       currencyId,
       currencyFormat,
+      isFreeShipping,
+      style,
       productImage,
       availableSizes,
-      isFreeShipping,
       installments,
-      style
     } = data;
 
     if (!validator.isValidValue(title)) {
