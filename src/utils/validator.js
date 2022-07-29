@@ -21,7 +21,7 @@ const isValidObjectId = function(value){
 
 
 const isValidName = function(value){
-  return /^\w[a-zA-Z.,\s]*$/.test(value)
+  return /^\w[a-zA-Z]*$/.test(value)
 }
 
 const isValidEmail = function(value){

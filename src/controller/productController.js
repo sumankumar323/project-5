@@ -25,6 +25,7 @@ const createProduct = async (req, res) => {
       availableSizes,
       isFreeShipping,
       installments,
+      style
     } = data;
 
     if (!validator.isValidValue(title)) {
@@ -69,11 +70,6 @@ const createProduct = async (req, res) => {
         .send({ status: false, message: "currencyId must be INR" });
     }
 
-    if (!validator.isValidValue(currencyFormat)) {
-      return res
-        .status(400)
-        .send({ status: false, message: "currencyFormat is required" });
-    }
 
     if (currencyFormat) {
       if (currencyFormat !== "₹") {
@@ -81,7 +77,15 @@ const createProduct = async (req, res) => {
           .status(400)
           .send({ status: false, message: "currencyFormat must be ₹ " });
       }
+      // if (!validator.isValidValue(currencyFormat)) {
+      //   return res
+      //     .status(400)
+      //     .send({ status: false, message: "currencyFormat is required" });
+      // }
     }
+    else
+    data.currencyFormat = "₹"
+    
 
     if (files.length > 0) {
       data.productImage = await aws_config.uploadFile(files[0]);

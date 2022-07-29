@@ -19,7 +19,7 @@ const registerUser = async (req, res) => {
         .send({ status: false, message: "Body can not be empty" });
     }
 
-    let { fname, lname, email, profileImage, phone, password } = data;
+    let { fname, lname, email, profileImage, phone, password ,address } = data;
 
     if (!validator.isValidValue(fname)) {
       return res
@@ -30,7 +30,7 @@ const registerUser = async (req, res) => {
     if (!validator.isValidName(fname)) {
       return res
         .status(400)
-        .send({ status: false, message: "Fname may contain only letters" });
+        .send({ status: false, message: "Fname may contain only letters. Digits & Spaces are not allowed " });
     }
 
     if (!validator.isValidValue(lname)) {
@@ -42,7 +42,7 @@ const registerUser = async (req, res) => {
     if (!validator.isValidName(lname)) {
       return res
         .status(400)
-        .send({ status: false, message: "Lname may contain only letters" });
+        .send({ status: false, message: "Lname may contain only letters. Digits & Spaces are not allowed" });
     }
 
     if (!validator.isValidValue(email)) {
@@ -64,11 +64,6 @@ const registerUser = async (req, res) => {
         .send({ status: false, message: "This email already exists" });
     }
 
-    if (Object.keys(data).includes(profileImage)) {
-      return res
-        .status(400)
-        .send({ status: false, message: "ProfileImage is required" });
-    }
 
     if (!validator.isValidValue(phone)) {
       return res
@@ -215,16 +210,15 @@ const registerUser = async (req, res) => {
 
 
 
-
-    if (!data.address) {
-      return res.status(400).send({ status: false, message: "address required" })
+    if (!data.address || !isNaN(data.address)) {
+      return res.status(400).send({ status: false, message: "Valid address is required" })
   }
-console.log(data.address,typeof data.address)
-
-//   if(Object.keys(data.address).length<1){
-//     return res.status(400).send({ status: false, message: "address is not in object format" })
-// }
-      let address = JSON.parse(data.address)
+      try{
+        address = JSON.parse(data.address)
+      }catch(err){
+        console.log(err.message)
+       return res.status(400).send({status: false,  message: `Address should be in valid object format`})
+      }
     
 
   if (!address.shipping || !address.billing) {
@@ -296,6 +290,12 @@ console.log(data.address,typeof data.address)
 
     //validation ends
 
+    if (Object.keys(data).includes(profileImage)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "ProfileImage is required" });
+    }
+
 
     if (files.length > 0) {
       data.profileImage = await aws_config.uploadFile(files[0]);
@@ -335,7 +335,7 @@ let login = async (req, res) => {
         .send({ status: false, messgage: "Email is required " });
     }
 
-    let checkemail = await userModel.findOne({ email });
+    let checkemail = await userModel.findOne({ email:email });
 
     if (!checkemail) {
       return res
@@ -460,7 +460,7 @@ const userUpdation = async (req, res) => {
       if (!validator.isValidName(fname)) {
         return res
           .status(400)
-          .send({ status: false, message: "Fname may contain only letters" });
+          .send({ status: false, message: "Fname may contain only letters. Digits & Spaces are not allowed" });
       }
     }
 
@@ -473,7 +473,7 @@ const userUpdation = async (req, res) => {
       if (!validator.isValidName(lname)) {
         return res
           .status(400)
-          .send({ status: false, message: "Lname may contain only letters" });
+          .send({ status: false, message: "Lname may contain only letters. Digits & Spaces are not allowed" });
       }
     }
 
@@ -520,9 +520,9 @@ const userUpdation = async (req, res) => {
           message: "password length should be between 8 to 15",
         });
       }
-    }
     password = await bcrypt.hash(password, saltRounds);
-    //console.log(password,data.password)
+    }
+
 
     if (Object.keys(data).includes("profileImage")) {
       if (files.length==0) {
@@ -533,11 +533,7 @@ const userUpdation = async (req, res) => {
       }
     }
 
-    let updateData = await userModel.findByIdAndUpdate(
-      { _id: userId },
-      { address, fname, lname, email, profileImage, phone, password },
-      { new: true, upsert: true }
-    );
+    let updateData = await userModel.findByIdAndUpdate({ _id: userId },data,{ new: true, upsert: true });
     
     return res.status(200).send({
       status: true,
