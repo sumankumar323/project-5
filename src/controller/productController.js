@@ -277,6 +277,7 @@ const getProductsByFilters = async (req, res) => {
     res.status(500).send({ status: false, message: error.message });
   }
 };
+ 
 
 /**********************************************UPDATE PRODUCT API*******************************************/
 

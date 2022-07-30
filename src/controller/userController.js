@@ -96,6 +96,7 @@ const registerUser = async (req, res) => {
         message: "password length should be between 8 to 15",
       });
     }
+    
     data.password = await bcrypt.hash(password, saltRounds);
 
     //ADDRESS VALIDATION
@@ -421,7 +422,7 @@ const getUserDetails = async (req, res) => {
   }
 };
 
-/************************************************UPDATE API*********************************************/
+//************************************************UPDATE API*********************************************/
 
 const userUpdation = async (req, res) => {
   try {
@@ -452,6 +453,7 @@ const userUpdation = async (req, res) => {
     let { fname, lname, email, profileImage, phone, password, address } = data;
 
     if (Object.keys(data).includes("fname")) {
+      
       if (!validator.isValidValue(fname)) {
         return res
           .status(400)
