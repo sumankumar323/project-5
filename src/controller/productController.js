@@ -59,29 +59,29 @@ const createProduct = async (req, res) => {
         message: "price is required & its value should be more than Zero",
       });
     }
-    if (!validator.isValidValue(currencyId)) {
-      return res
-        .status(400)
-        .send({ status: false, message: "currencyId is required" });
-    }
-    if (currencyId !== "INR") {
-      return res
-        .status(400)
-        .send({ status: false, message: "currencyId must be INR" });
-    }
+    
+    if (Object.keys(data).includes("currencyId")) {
+      if (!validator.isValidValue(currencyId)) {
+        return res
+          .status(400)
+          .send({ status: false, message: "currencyId is required" });
+      }
+      if (currencyId !== "INR") {
+        return res
+          .status(400)
+          .send({ status: false, message: "currencyId must be INR" });
+      }
+  }
+  else
+    data.currencyId = "INR"
 
-
+console.log(data.currencyId)
     if (currencyFormat) {
       if (currencyFormat !== "₹") {
         return res
           .status(400)
           .send({ status: false, message: "currencyFormat must be ₹ " });
       }
-      // if (!validator.isValidValue(currencyFormat)) {
-      //   return res
-      //     .status(400)
-      //     .send({ status: false, message: "currencyFormat is required" });
-      // }
     }
     else
     data.currencyFormat = "₹"
