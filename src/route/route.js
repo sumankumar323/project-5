@@ -28,8 +28,8 @@ router.get('/users/:userId/cart', /*Authentication,*/ cartController.getCart)
 router.delete('/users/:userId/cart', /*Authentication,*/ cartController.deleteCart)
 
 // //Order's APIs -> 
-// router.post('/users/:userId/orders', Authentication, orderController.createOrder)
-// router.put('/users/:userId/orders', Authentication, orderController.updateOrder)
+router.post('/users/:userId/orders', Authentication, orderController.createOrder)
+router.put('/users/:userId/orders', Authentication, orderController.updateOrder)
 
 
 
