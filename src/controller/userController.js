@@ -101,126 +101,10 @@ const registerUser = async (req, res) => {
 
     //ADDRESS VALIDATION
 
-    // if (!validator.isValidValue(data.address)) {
-    //   return res
-    //     .status(400)
-    //     .send({ status: false, message: "Address is required" });
-    // }
-    // address = JSON.parse(data.address)
-    // console.log(address)
-    // //shipping address validation
-    // if (address.shipping) {
-    //   if (address.shipping.street) {
-    //     if (!validator.isValidRequest(address.shipping.street)) {
-    //       return res.status(400).send({
-    //         status: false,
-    //         message: "Shipping address's Street Required",
-    //       });
-    //     }
-    //   } else {
-    //     return res.status(400).send({
-    //       status: false,
-    //       message:
-    //         " Invalid request parameters. Shipping address's street cannot be empty",
-    //     });
-    //   }
-
-    //   if (address.shipping.city) {
-    //     if (!validator.isValidRequest(address.shipping.city)) {
-    //       return res
-    //         .status(400)
-    //         .send({ status: false, message: "Shipping address city Required" });
-    //     }
-    //   } else {
-    //     return res.status(400).send({
-    //       status: false,
-    //       message:
-    //         "Invalid request parameters. Shipping address's city cannot be empty",
-    //     });
-    //   }
-    //   if (address.shipping.pincode) {
-    //     if (!validator.isValidRequest(address.shipping.pincode)) {
-    //       return res.status(400).send({
-    //         status: false,
-    //         message: "Shipping address's pincode Required",
-    //       });
-    //     }
-    //   } else {
-    //     return res.status(400).send({
-    //       status: false,
-    //       message:
-    //         "Invalid request parameters. Shipping address's pincode cannot be empty",
-    //     });
-    //   }
-    // } else {
-    //   return res
-    //     .status(400)
-    //     .send({ status: false, message: "Shipping address cannot be empty." });
-    // }
-    // // Billing Address validation
-    // if (address.billing) {
-    //   if (address.billing.street) {
-    //     if (!validator.isValidRequest(address.billing.street)) {
-    //       return res.status(400).send({
-    //         status: false,
-    //         message: "Billing address's Street Required",
-    //       });
-    //     }
-    //   } else {
-    //     return res.status(400).send({
-    //       status: false,
-    //       message:
-    //         " Invalid request parameters. Billing address's street cannot be empty",
-    //     });
-    //   }
-    //   if (address.billing.city) {
-    //     if (!validator.isValidRequest(address.billing.city)) {
-    //       return res.status(400).send({
-    //         status: false,
-    //         message: "Billing address's city Required",
-    //       });
-    //     }
-    //   } else {
-    //     return res.status(400).send({
-    //       status: false,
-    //       message:
-    //         "Invalid request parameters. Billing address's city cannot be empty",
-    //     });
-    //   }
-    //   if (address.billing.pincode) {
-    //     if (!validator.isValidRequest(address.billing.pincode)) {
-    //       return res.status(400).send({
-    //         status: false,
-    //         message: "Billing address's pincode Required ",
-    //       });
-    //     }
-    //   } else {
-    //     return res.status(400).send({
-    //       status: false,
-    //       message:
-    //         "Invalid request parameters. Billing address's pincode cannot be empty",
-    //     });
-    //   }
-    // } else {
-    //   return res
-    //     .status(400)
-    //     .send({ status: false, message: "Billing address cannot be empty." });
-    // }
-
-
-
-
-
     if (!data.address || !isNaN(data.address)) {
       return res.status(400).send({ status: false, message: "Valid address is required" })
   }
-      try{
         address = JSON.parse(data.address)
-      }catch(err){
-        console.log(err.message)
-       return res.status(400).send({status: false,  message: `Address should be in valid object format`})
-      }
-    
 
   if (!address.shipping || !address.billing) {
       return res.status(400).send({ status: false, message: "shipping and billing address required" })
@@ -291,12 +175,6 @@ const registerUser = async (req, res) => {
 
     //validation ends
 
-    if (Object.keys(data).includes(profileImage)) {
-      return res
-        .status(400)
-        .send({ status: false, message: "ProfileImage is required" });
-    }
-
 
     if (files.length > 0) {
       data.profileImage = await aws_config.uploadFile(files[0]);
@@ -310,10 +188,18 @@ const registerUser = async (req, res) => {
     return res
       .status(201)
       .send({ status: true, message: "Data created", Data: savedData });
-  } catch (err) {
+  } 
+  catch (err) {
+    if (err instanceof SyntaxError) {
+      return res
+      .status(500)
+      .send({ status: false, message: "Address should be in Object format"  });
+    }
+      else{
     return res
       .status(500)
       .send({ status: false, message: "Error occcured : " + err });
+    }
   }
 };
 
@@ -534,6 +420,15 @@ const userUpdation = async (req, res) => {
         });
       }
     }
+
+
+
+  //Address is still to do
+
+
+
+
+
 
     let updateData = await userModel.findByIdAndUpdate({ _id: userId },data,{ new: true, upsert: true });
     
