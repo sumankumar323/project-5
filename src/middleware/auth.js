@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const userModel = require("../model/userModel");
 
 
-module.exports.Authentication = function (req, res, next) {
+const Authentication = function (req, res, next) {
   try {
     if(!req.headers.authorization) {
         return res.status(401).send({ status: false, message: "Missing authentication token in request " });
@@ -37,3 +37,16 @@ module.exports.Authentication = function (req, res, next) {
   }
 };
 
+
+const Authorization = async (req,res,next) =>{
+
+  let userId = req.params.userId
+  let user = await userModel.findById({_id:userId})
+
+  if(user._id!==req.userId){
+    return res.status(403).send({status: false,message: "Unauthorized access! User's info doesn't match"})
+  }
+  next();
+}
+
+module.exports={Authentication,Authorization}

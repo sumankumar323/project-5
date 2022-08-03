@@ -325,11 +325,11 @@ const userUpdation = async (req, res) => {
         message: "User Id doesn't exist.Please enter another Id",
       });
 
-    if (profile._id.toString() !== req.userId)
-      return res.status(403).send({
-        status: false,
-        message: "Unauthorized access! User's info doesn't match",
-      });
+    // if (profile._id.toString() !== req.userId)
+    //   return res.status(403).send({
+    //     status: false,
+    //     message: "Unauthorized access! User's info doesn't match",
+    //   });
 
     let data = req.body;
     let files = req.files;

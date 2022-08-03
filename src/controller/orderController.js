@@ -10,12 +10,12 @@ const createOrder = async function (req, res) {
             return res.status(400).send({ status: false, message: "Provide a valid userId" });
         }
 
-        if (userId !== req.userId) {
-            return res.status(403).send({
-                status: false,
-                message: "Unauthorized access! User's info doesn't match"
-            })
-        }
+        // if (userId !== req.userId) {
+        //     return res.status(403).send({
+        //         status: false,
+        //         message: "Unauthorized access! User's info doesn't match"
+        //     })
+        // }
 
         let cartBody = req.body;
         const { cartId, cancellable, status } = cartBody;
@@ -76,12 +76,12 @@ const updateOrder = async function (req, res) {
             return res.status(400).send({ status: false, message: "Provide a valid userId" });
         }
 
-        if (userId !== req.userId) {
-            return res.status(403).send({
-                status: false,
-                message: "Unauthorized access! User's info doesn't match"
-            })
-        }
+        // if (userId !== req.userId) {
+        //     return res.status(403).send({
+        //         status: false,
+        //         message: "Unauthorized access! User's info doesn't match"
+        //     })
+        // }
 
         if (!validator.isValidRequest(req.body)) {
             return res.status(400).send({ status: false, message: "Please provide body" });
