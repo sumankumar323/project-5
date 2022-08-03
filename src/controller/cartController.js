@@ -11,7 +11,7 @@ const validator = require("../utils/validator");
 const createCart  = async function(req,res)  {
     try{
         
-        const { quantity, productId } = req.body;
+        let { quantity, productId } = req.body;
         const userId = req.params.userId
 
         if(!validator.isValidRequest(req.body)) return res.status(400).send({status: false, message: "body cannot be empty"})
@@ -25,12 +25,15 @@ const createCart  = async function(req,res)  {
 
         if(!validator.isValidObjectId(productId) || !validator.isValidValue(productId)) return res.status(400).send({status: false, message: "Enter valid Product Object Id"})
        
-        if (!validator.isValidValue(quantity) || quantity<1) {
-          return res.status(400).send({ status: false, message: "Please provide valid quantity & it must be greater than zero." })
+        if (!quantity) {
+          quantity = 1
+      }
+        if (quantity<1) {
+          return res.status(400).send({ status: false, message: "Please must be greater than zero." })
       }
 
 
-      //cartModel.findById(cartId).populate([{ path: "items.productId" }])
+      //cartModel.fDetailsyId(cartId).populate([{ path: "items.productId" }])
 
 
         // if(userId!==req.userId){
@@ -44,7 +47,7 @@ const createCart  = async function(req,res)  {
 
         if(!findProduct) return res.status(404).send({status: false, message: "Product Id not found"})
 
-        let findCartOfUser = await cartModel.findOne({userId : userId})
+        let findCartOfUser = await cartModel.findOne({userId})
 
         if (!findCartOfUser) {
 
@@ -58,7 +61,7 @@ const createCart  = async function(req,res)  {
               totalPrice: findProduct.price * quantity,
               totalItems: 1
           }
-
+        
           const createCart = await cartModel.create(cartData)
           return res.status(201).send({ status: true, message: `Cart created successfully`, data: createCart })
         }
@@ -100,6 +103,99 @@ const createCart  = async function(req,res)  {
 
 
 
+const updateCart = async (req, res) => {
+  try {
+
+      const userId = req.params.userId
+      let { productId, cartId, removeProduct } = req.body
+
+
+
+      if (!cartId) {
+          return res.status(400).send({ status: false, message: "cartId be must present..." })
+      }
+      if (!validator.isValidObjectId(cartId)) {
+        return res.status(400).send({ status: false, message: "Not a valid cartId" })
+    }
+
+      if (!productId) {
+          return res.status(400).send({ status: false, message: "productId must be present..." })
+      }
+      if (!validator.isValidObjectId(productId)) {
+        return res.status(400).send({ status: false, message: "Not a valid ProductId" })
+    }
+
+      if (!removeProduct && removeProduct != 0 ) {
+          return res.status(400).send({ status: false, message: "removeProduct key must be present..." })
+      }
+      if (!(removeProduct == "1" || removeProduct == "0")) {
+          return res.status(400).send({ status: false, message: "removeProduct must be either 0 or 1" })
+      }
+
+
+
+      const cartDetails = await cartModel.findById({ _id: cartId })
+     
+      if (!cartDetails) {
+          return res.status(404).send({ status: false, message: "cartId does'nt exist" })
+      }
+
+      const productDetails = await productModel.findOne({ _id: productId, isDeleted: false })
+
+      if (!productDetails) {
+          return res.status(404).send({ status: false, message: "productId doesn't exist" })
+      }
+
+      const productIdInCart = await cartModel.findOne({ userId: userId, "items.productId": productId })
+
+      if (!productIdInCart) {
+          return res.status(404).send({ status: false, message: "productId does'nt exist in this cart" })
+      }
+
+
+      let { items } = cartDetails
+      let getPrice = productDetails.price
+
+      for (let i = 0; i < items.length; i++) {
+          if (items[i].productId == productId) {
+
+              let totelProductprice = items[i].quantity * getPrice
+
+              if (removeProduct == 0 || (items[i].quantity == 1 && removeProduct == 1)) {
+
+                  const removeCart = await cartModel.findOneAndUpdate({ userId: userId },
+                      {
+                          $pull: { items: { productId: productId } },
+                          $inc: {
+                              totalPrice: - totelProductprice,
+                              totalItems: - 1
+                          }
+                      },
+                      { new: true })
+
+                  return res.status(200).send({ status: true, message: 'sucessfully removed product from cart', data: removeCart })
+
+              }
+
+              const product = await cartModel.findOneAndUpdate({ "items.productId": productId, userId: userId }, { $inc: { "items.$.quantity": -1, totalPrice: -getPrice } }, { new: true })
+
+              return res.status(200).send({ status: true, message: 'sucessfully decrease one quantity of product', data: product })
+          }
+      }
+  } catch (error) {
+      return res.status(500).send({ status: false, error: error.message })
+  }
+}
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -109,7 +205,7 @@ const getCart = async function (req, res) {
       let userId = req.params.userId;
   
       let cartDetails = await cartModel
-        .findOne({ userId: userId})
+        .findOne({ userId})
         .populate("items.productId");
   
       if (!cartDetails)
@@ -159,7 +255,7 @@ const getCart = async function (req, res) {
 
 
 
-
+/*
 const updateCart = async (req, res) => {
   
     try {
@@ -246,38 +342,53 @@ const updateCart = async (req, res) => {
           for(let i=0; i<cartData.items.length;i++){
 
             if(cartData.items[i].productId.toString()==productId){
-              
-              cartData.totalPrice = cartData.totalPrice-productData.price
-              cartData.items[i].quantity=cartData.items[i].quantity-1
-              console.log(cartData.totalPrice, cartData.items[i].quantity)
-              
-            cartData = await cartModel.findByIdAndUpdate({_id:cartId},{/*totalPrice:cartData.totalPrice*/ quantity:cartData.items[i].quantity},{new:true})
+              let totelProductprice = cartData.items[i].quantity * productData.price
+              if(removeProduct==1){
+            cartData = await cartModel.findOneAndUpdate({ "items.productId": productId, userId: userId }, { $inc: { "items.$.quantity": -1, totalPrice: -productData.price } }, { new: true })
+            return res.status(200).send({
+              status: true,
+              message: "cart profile updated",
+              data: cartData,
+             });
+            }
 
-             
+
+            if (removeProduct == 0 || (items[i].quantity == 1 && removeProduct == 1)) {
+
+              const removeCart = await cartModel.findOneAndUpdate({ userId},
+                  {
+                      $pull: { items: { productId: productId } },
+                      $inc: {
+                          totalPrice: - totalP,
+                          totalItems: - 1
+                      }
+                  },
+                  { new: true })
+
+              return res.status(200).send({ status: true, message: 'sucessfully removed product from cart', data: removeCart })
+
+          }
             }
           }
 
 
     
           
-         return res.status(200).send({
-           status: true,
-           message: "cart profile updated",
-           data: cartData,
-          });
+         
          }
         } catch (error) {
           
           res.status(500).send({ status: false, message: error.message });
         }
       };
-  
+  */
   
   
       module.exports = {createCart, updateCart, getCart,deleteCart}
 
 
 
+<<<<<<< HEAD
 
 //    if(removeProduct==="0"){
 //     let updatedCart=await cartModel.findOneAndUpdate({_id:cartId},{items:[]},{new:true})
@@ -285,3 +396,5 @@ const updateCart = async (req, res) => {
 //        let updatedCart=await cartModel.findOneAndUpdate({_id:cartId},{items:{productId:productId,$inc:{quantity:-1}
 //     }},{new:true})
    
+=======
+>>>>>>> 3f2afc3879ad4942d20af93fc370147f5c811866

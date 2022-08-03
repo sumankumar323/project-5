@@ -5,12 +5,13 @@ const productController = require("../controller/productController")
 const cartController = require("../controller/cartController")
 const orderController = require("../controller/orderController")
 const Authentication = require('../middleware/auth').Authentication
+const Authorization = require('../middleware/auth').Authorization
 
 // USER's APIs ->
 router.post("/register", userController.registerUser)
 router.post("/login", userController.login)
 router.get("/user/:userId/profile", Authentication, userController.getUserDetails)
-router.put("/user/:userId/profile", Authentication, userController.userUpdation)
+router.put("/user/:userId/profile", Authentication,Authorization, userController.userUpdation)
 
 
 //PRODUCT's APIs -> (No Authentication)
@@ -22,14 +23,14 @@ router.delete("/products/:productId",productController.deleteByProductId )
 
 
 // //Cart's APIs -> 
-router.post('/users/:userId/cart', /*Authentication,*/ cartController.createCart)
-router.put('/users/:userId/cart', /*Authentication,*/ cartController.updateCart)
-router.get('/users/:userId/cart', /*Authentication,*/ cartController.getCart)
-router.delete('/users/:userId/cart', /*Authentication,*/ cartController.deleteCart)
+router.post('/users/:userId/cart', Authentication, cartController.createCart)
+router.put('/users/:userId/cart', Authentication, cartController.updateCart)
+router.get('/users/:userId/cart', Authentication, cartController.getCart)
+router.delete('/users/:userId/cart', Authentication, cartController.deleteCart)
 
 // //Order's APIs -> 
-router.post('/users/:userId/orders', Authentication, orderController.createOrder)
-router.put('/users/:userId/orders', Authentication, orderController.updateOrder)
+router.post('/users/:userId/orders', Authentication, Authorization,orderController.createOrder)
+router.put('/users/:userId/orders', Authentication,Authorization, orderController.updateOrder)
 
 
 
