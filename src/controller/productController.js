@@ -1,4 +1,3 @@
-const mongoose = require("mongoose");
 const aws_config = require("../utils/aws-config");
 const validator = require("../utils/validator");
 const productModel = require("../model/productModel");

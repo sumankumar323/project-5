@@ -32,7 +32,9 @@ const isValidPhone = function(value){
   return /^[6-9]\d{9}$/.test(value)
 }
 
+const validStatus = function(value){
+  return ["pending", "completed", "cancelled"].indexOf(value) !== -1;
+}
 
 
-
-module.exports={isValidRequest, isValidValue ,isValidNumber , isValidObjectId, isValidName, isValidEmail, isValidPhone}
+module.exports={isValidRequest, isValidValue ,isValidNumber , isValidObjectId, isValidName, isValidEmail, isValidPhone, validStatus}
