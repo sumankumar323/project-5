@@ -388,13 +388,3 @@ const updateCart = async (req, res) => {
 
 
 
-<<<<<<< HEAD
-
-//    if(removeProduct==="0"){
-//     let updatedCart=await cartModel.findOneAndUpdate({_id:cartId},{items:[]},{new:true})
-// if(!(cart.totalItems>0))return res.status(400).send({ status: false, message: " No items to delete" })
-//        let updatedCart=await cartModel.findOneAndUpdate({_id:cartId},{items:{productId:productId,$inc:{quantity:-1}
-//     }},{new:true})
-   
-=======
->>>>>>> 3f2afc3879ad4942d20af93fc370147f5c811866
