@@ -42,8 +42,8 @@ const Authorization = async (req,res,next) =>{
 
   let userId = req.params.userId
   let user = await userModel.findById({_id:userId})
-
-  if(user._id!==req.userId){
+ 
+  if(user._id.toString()!==req.userId){
     return res.status(403).send({status: false,message: "Unauthorized access! User's info doesn't match"})
   }
   next();
