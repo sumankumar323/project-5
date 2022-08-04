@@ -309,7 +309,7 @@ const getUserDetails = async (req, res) => {
 
 //************************************************UPDATE API*********************************************/
 
-const userUpdation = async (req, res) => {
+const updateUser = async (req, res) => {
   try {
     let userId = req.params.userId;
 
@@ -326,11 +326,7 @@ const userUpdation = async (req, res) => {
         message: "User Id doesn't exist.Please enter another Id",
       });
 
-    // if (profile._id.toString() !== req.userId)
-    //   return res.status(403).send({
-    //     status: false,
-    //     message: "Unauthorized access! User's info doesn't match",
-    //   });
+   
 
     let data = req.body;
     let files = req.files;
@@ -442,4 +438,4 @@ const userUpdation = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, login, getUserDetails, userUpdation };
+module.exports = { registerUser, login, getUserDetails, updateUser };

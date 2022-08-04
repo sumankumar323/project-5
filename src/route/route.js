@@ -11,7 +11,7 @@ const Authorization = require('../middleware/auth').Authorization
 router.post("/register", userController.registerUser)
 router.post("/login", userController.login)
 router.get("/user/:userId/profile", Authentication, userController.getUserDetails)
-router.put("/user/:userId/profile", Authentication,Authorization, userController.userUpdation)
+router.put("/user/:userId/profile", Authentication,Authorization, userController.updateUser)
 
 
 //PRODUCT's APIs -> (No Authentication)
