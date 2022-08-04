@@ -441,6 +441,26 @@ const updateProduct = async (req, res) => {
       data.productImage = await aws_config.uploadFile(files[0]);
     }
 
+    // data.isDeleted=false
+    // data.currencyId="₹"
+    // data.currencyFormat="INR"
+    if (data.currencyFormat || data.currencyFormat == "") {
+      if (!validator.isValidValue(data.currencyFormat)) {
+        return res
+          .status(400)
+          .send({ status: false, message: "currencyFormat can not be empty" });
+      }
+      if (data.currencyFormat != "INR")
+        return res.status(400).send({
+          status: false,
+          message: "at least 'INR' currency is allowed",
+        });
+      data.currencyFormat = currencyFormat;
+    }
+
+    
+
+
     let updateData = await productModel.findOneAndUpdate(
       { _id: productId, isDeleted: false },data,{ new: true });
 

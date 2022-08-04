@@ -186,7 +186,7 @@ const registerUser = async (req, res) => {
             status: false,
             message: "enter valid street name in shipping",
           });
-      }
+        }
     }
 
     if (Bcity) {
@@ -212,6 +212,11 @@ const registerUser = async (req, res) => {
     data.address = address;
 
     //validation ends
+    
+        if (!/\.(gif|jpe?g|tiff?|png|webp|bmp)$/i.test(files.originalname))
+          return res
+            .status(400)
+            .send({ status: false, message: "only image format is accept" }); ///Added
 
     if (files.length > 0) {
       data.profileImage = await aws_config.uploadFile(files[0]);
@@ -220,11 +225,6 @@ const registerUser = async (req, res) => {
         .status(400)
         .send({ status: false, message: "ProfileImage File is required" });
     }
-
-    if (!/\.(gif|jpe?g|tiff?|png|webp|bmp)$/i.test(data.profileImage))
-      return res
-        .status(400)
-        .send({ status: false, message: "only image format is accept" }); ///Added
 
     let savedData = await userModel.create(data);
     return res

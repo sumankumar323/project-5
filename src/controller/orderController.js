@@ -82,16 +82,6 @@ const updateOrder = async function (req, res) {
             return res.status(400).send({ status: false, message: "Provide a valid userId" });
         }
 
-<<<<<<< HEAD
-        
-        // if (userId !== req.userId) {
-        //     return res.status(403).send({
-        //         status: false,
-        //         message: "Unauthorized access! User's info doesn't match"
-        //     })
-        // }
-=======
->>>>>>> 0c00d7392ff0a78d6347ddea66e6e98f899addb2
 
         if (!validator.isValidRequest(req.body)) {
             return res.status(400).send({ status: false, message: "Please provide body" });
