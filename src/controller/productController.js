@@ -52,6 +52,11 @@ const createProduct = async (req, res) => {
         .status(400)
         .send({ status: false, message: "description is required" });
     }
+
+    if(!/^\d*[a-zA-Z][a-zA-Z\d\s.]*$/.test(description)) return res.status(400).send({status: false, message: "The description may contain letters and numbers, not only numbers"})
+
+
+
     if (!validator.isValidNumber(price) || price < 0) {
       return res.status(400).send({
         status: false,
@@ -191,15 +196,45 @@ const getProductsByFilters = async (req, res) => {
     const { size, title, priceGreaterThan, priceLessThan, priceSort } = data;
     const filterData = { isDeleted: false };
 
+    // if (data.hasOwnProperty("size")) {
+    //   if (!validator.isValidValue(size)) {
+    //     return res
+    //       .status(400)
+    //       .send({ status: false, message: "Enter a valid size" });
+    //   } else {
+    //     filterData.availableSizes = size;
+    //   }
+    // }
+
     if (data.hasOwnProperty("size")) {
       if (!validator.isValidValue(size)) {
-        return res
-          .status(400)
-          .send({ status: false, message: "Enter a valid size" });
-      } else {
-        filterData.availableSizes = size;
+            return res
+              .status(400)
+              .send({ status: false, message: "Enter a valid size" });
+          }
+
+      let sizesArray = size.split(",").map(x=>x.toUpperCase()).map((x) => x.trim());
+
+      // for (let i = 0; i < sizesArray.length; i++) {
+      //   if (!["S", "XS", "M", "X", "L", "XXL", "XL"].includes(sizesArray[i])) {
+      //     return res.status(400).send({
+      //       status: false,
+      //       message:
+      //         "AvailableSizes should be among ['S','XS','M','X','L','XXL','XL']",
+      //     });
+      //   }
+      // }
+
+      if (Array.isArray(sizesArray)) {
+       filterData["size"] = [...new Set(sizesArray)];
       }
     }
+console.log(filterData)
+
+
+
+
+
 
     if (data.hasOwnProperty("title")) {
       if (!validator.isValidValue(title)) {
