@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const userModel = require("../model/userModel");
 const validator = require("../utils/validator");
 
-
+/**********************************************AUTHENTICATION*******************************************/
 const Authentication = function (req, res, next) {
   try {
     if(!req.headers.authorization) {
@@ -24,7 +24,7 @@ const Authentication = function (req, res, next) {
     
     jwt.verify(token, "group40", function (err, decoded) {
       if (err) {
-        return res.status(401).send({ status: false, message: "token invalid" });
+        return res.status(401).send({ status: false, message: "Invalid Token" });
       }
       else {
         req.userId = decoded.userId;
@@ -39,12 +39,15 @@ const Authentication = function (req, res, next) {
 };
 
 
+
+/**********************************************AUTHORIZATION*******************************************/
+
 const Authorization = async (req,res,next) =>{
 
   let userId = req.params.userId
   if(!validator.isValidObjectId(userId)) return res.status(404).send({status: false,message: "User Id not valid"})
-  let user = await userModel.findById({_id:userId})
 
+  let user = await userModel.findById({_id:userId})
   if(!user)  return res.status(404).send({status: false,message: "User Id not found"})
 
   if(user._id.toString()!==req.userId){
@@ -53,4 +56,4 @@ const Authorization = async (req,res,next) =>{
   next();
 }
 
-module.exports={Authentication,Authorization}
+module.exports = {Authentication,Authorization}

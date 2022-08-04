@@ -32,9 +32,14 @@ const isValidPhone = function(value){
   return /^[6-9]\d{9}$/.test(value)
 }
 
+
+const validFormat = function(value){
+  return /\.(gif|jpe?g|tiff?|png|webp|bmp)$/i.test(value)
+}
+
 const validStatus = function(value){
   return ["pending", "completed", "cancelled"].indexOf(value) !== -1;
 }
 
 
-module.exports={isValidRequest, isValidValue ,isValidNumber , isValidObjectId, isValidName, isValidEmail, isValidPhone, validStatus}
+module.exports={isValidRequest, isValidValue ,isValidNumber , isValidObjectId, isValidName, isValidEmail, isValidPhone, validFormat,validStatus}

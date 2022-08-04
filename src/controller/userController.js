@@ -5,6 +5,8 @@ const aws_config = require("../utils/aws-config");
 const userModel = require("../model/userModel");
 const saltRounds = 10;
 
+
+
 /************************************************CREATE USER API*******************************************/
 
 const registerUser = async (req, res) => {
@@ -12,6 +14,7 @@ const registerUser = async (req, res) => {
     let files = req.files;
     let data = req.body;
 
+    // VALIDATIONS STARTS
     if (!validator.isValidRequest(data)) {
       return res
         .status(400)
@@ -104,8 +107,9 @@ const registerUser = async (req, res) => {
     }
     data.password = await bcrypt.hash(password, saltRounds);
 
-    //ADDRESS VALIDATION
 
+
+    //ADDRESS VALIDATION
     if (!data.address || !isNaN(data.address)) {
       return res
         .status(400)
@@ -140,7 +144,7 @@ const registerUser = async (req, res) => {
 
     let Sstreet = address.shipping.street;
     let Scity = address.shipping.city;
-    let Spincode = parseInt(address.shipping.pincode); //shipping
+    let Spincode = parseInt(address.shipping.pincode);            //shipping
     if (Sstreet) {
       let validateStreet = /^[a-zA-Z0-9]/;
       if (!validateStreet.test(Sstreet)) {
@@ -173,9 +177,12 @@ const registerUser = async (req, res) => {
       }
     }
 
+
+
+
     let Bstreet = address.billing.street;
-    let Bcity = address.billing.city; //billing
-    let Bpincode = parseInt(address.billing.pincode);
+    let Bcity = address.billing.city;                       
+    let Bpincode = parseInt(address.billing.pincode);           //billing
     if (Bstreet) {
       let validateStreet = /^[a-zA-Z0-9]/;
       if (!validateStreet.test(Bstreet)) {
@@ -213,17 +220,17 @@ const registerUser = async (req, res) => {
     //validation ends
 
     if (files.length > 0) {
-      data.profileImage = await aws_config.uploadFile(files[0]);
+      if (!validator.validFormat(files[0].originalname)){
+      return res.status(400).send({ status: false, message: "only image format is accept" }); 
+    }
+      data.profileImage = await aws_config.uploadFile(files[0]);  
     } else {
       return res
         .status(400)
         .send({ status: false, message: "ProfileImage File is required" });
     }
 
-    if (!/\.(gif|jpe?g|tiff?|png|webp|bmp)$/i.test(data.profileImage))
-      return res
-        .status(400)
-        .send({ status: false, message: "only image format is accept" }); ///Added
+    
 
     let savedData = await userModel.create(data);
     return res
@@ -232,7 +239,7 @@ const registerUser = async (req, res) => {
   } catch (err) {
     if (err instanceof SyntaxError) {
       return res
-        .status(500)
+        .status(400)
         .send({ status: false, message: "Address should be in Object format" });
     } else {
       return res
@@ -241,6 +248,10 @@ const registerUser = async (req, res) => {
     }
   }
 };
+
+
+
+
 
 /************************************************LOGIN API**********************************************/
 
@@ -284,7 +295,8 @@ let login = async (req, res) => {
         .send({ status: false, message: "Password is not correct" });
     }
 
-    /*-------------------------------------------GENERATE TOKEN----------------------------------------------*/
+
+    //GENERATE TOKEN
 
     let date = Date.now();
     let createTime = Math.floor(date / 1000);
@@ -310,6 +322,11 @@ let login = async (req, res) => {
   }
 };
 
+
+
+
+
+
 /************************************************GET USER API*********************************************/
 
 const getUserDetails = async (req, res) => {
@@ -322,6 +339,7 @@ const getUserDetails = async (req, res) => {
       });
 
     const profile = await userModel.findOne({ _id: userId });
+    console.log(profile)
 
     if (!profile)
       return res.status(404).send({
@@ -329,11 +347,6 @@ const getUserDetails = async (req, res) => {
         message: "User Id doesn't exist.Please enter another Id",
       });
 
-    if (profile._id.toString() !== req.userId)
-      return res.status(403).send({
-        status: false,
-        message: "Unauthorized access! User's info doesn't match",
-      });
 
     return res.status(200).send({
       status: true,
@@ -346,6 +359,10 @@ const getUserDetails = async (req, res) => {
       .send({ status: false, message: "Error occcured : " + err });
   }
 };
+
+
+
+
 
 /************************************************UPDATE API*********************************************/
 
@@ -372,7 +389,7 @@ const updateUser = async (req, res) => {
     if (!validator.isValidRequest(data) && !files) {
       return res
         .status(400)
-        .send({ status: false, message: "Body can not be empty" });
+        .send({ status: false, message: "Nothing to update" });
     }
 
     let { fname, lname, email, phone, password } = data;
@@ -481,11 +498,6 @@ const updateUser = async (req, res) => {
 
 
     if (Object.keys(data).includes("address")) {
-      if (!data.address || !isNaN(data.address)) {
-        return res
-          .status(400)
-          .send({ status: false, message: "Valid address is required" });
-      }
       if (typeof address != "object")
         return res
           .status(400)
@@ -558,10 +570,13 @@ const updateUser = async (req, res) => {
       data: modifiedData,
     });
   } catch (error) {
-    if (error instanceof SyntaxError)
+    if (error instanceof SyntaxError){
       return res.status(400).send({ status: false, message: "Invalid Object" });
+    }
     res.status(500).send({ status: false, message: error.message });
   }
 };
+
+
 
 module.exports = { registerUser, login, getUserDetails, updateUser };
