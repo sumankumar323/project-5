@@ -188,7 +188,7 @@ const getProductById = async (req, res) => {
 const getProductsByFilters = async (req, res) => {
   try {
     let data = req.query;
-    const { size, name, priceGreaterThan, priceLessThan, priceSort } = data;
+    const { size, title, priceGreaterThan, priceLessThan, priceSort } = data;
     const filterData = { isDeleted: false };
 
     if (data.hasOwnProperty("size")) {
@@ -201,13 +201,13 @@ const getProductsByFilters = async (req, res) => {
       }
     }
 
-    if (data.hasOwnProperty("name")) {
-      if (!validator.isValidValue(name)) {
+    if (data.hasOwnProperty("title")) {
+      if (!validator.isValidValue(title)) {
         return res
           .status(400)
-          .send({ status: false, message: "Enter a valid name" });
+          .send({ status: false, message: "Enter a valid title" });
       } else {
-        filterData.title = name;
+        filterData.title = title;
       }
     }
 
@@ -283,7 +283,7 @@ const updateProduct = async (req, res) => {
   try {
     let productId = req.params.productId;
 
-    if (!mongoose.isValidObjectId(productId))
+    if (!validator.isValidObjectId(productId))
       return res
         .status(400)
         .send({ status: false, message: "Product Id is not a valid Id" });

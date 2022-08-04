@@ -3,22 +3,16 @@ const cartModel = require('../model/cartModel');
 const orderModel = require("../model/orderModel")
 const validator = require("../utils/validator");
 
-const createOrder = async function (req, res) {
+const createOrder = async  (req, res) => {
     try {
         let userId = req.params.userId;
         if (!(validator.isValidObjectId(userId))) {
             return res.status(400).send({ status: false, message: "Provide a valid userId" });
         }
 
-        // if (userId !== req.userId) {
-        //     return res.status(403).send({
-        //         status: false,
-        //         message: "Unauthorized access! User's info doesn't match"
-        //     })
-        // }
 
         let cartBody = req.body;
-        const { cartId, cancellable, status } = cartBody;
+        let { cartId, cancellable, status } = cartBody;
 
         if (!validator.isValidRequest(cartBody)) {
             return res.status(400).send({ status: false, message: "Please provide body" });
@@ -28,9 +22,21 @@ const createOrder = async function (req, res) {
             return res.status(400).send({ status: false, message: "Provide a valid cartId" });
         }
 
+        if(cancellable){
+            if(cancellable!==true && cancellable!==false){
+                return res.status(400).send({ status: false, message: "Please provide valid cancellable status" });
+            }
+
+        }
+
+
+        if(status){
         if (!validator.validStatus(status)) {
             return res.status(400).send({ status: false, message: "Please provide valid status" });
         }
+    }
+    else
+    status= "pending"
 
         let findUser = await userModel.findOne({ _id: userId });
 
@@ -76,12 +82,6 @@ const updateOrder = async function (req, res) {
             return res.status(400).send({ status: false, message: "Provide a valid userId" });
         }
 
-        // if (userId !== req.userId) {
-        //     return res.status(403).send({
-        //         status: false,
-        //         message: "Unauthorized access! User's info doesn't match"
-        //     })
-        // }
 
         if (!validator.isValidRequest(req.body)) {
             return res.status(400).send({ status: false, message: "Please provide body" });
@@ -91,9 +91,9 @@ const updateOrder = async function (req, res) {
             return res.status(400).send({ status: false, message: "Provide a valid orderId" });
         }
 
-        // if (!validator.validStatus(status)) {
-        //     return res.status(400).send({ status: false, message: "Please provide valid status" });
-        // }
+        if (!validator.validStatus(status)) {
+            return res.status(400).send({ status: false, message: "Please provide valid status" });
+        }
 
         let findUser = await userModel.findOne({ _id: userId })
         if (!findUser) {
