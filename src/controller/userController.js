@@ -478,8 +478,31 @@ const updateUser = async (req, res) => {
           updatedData.address.shipping.pincode = pincode
         }
       }
+
+      if (addr.billing) {
+        let { street, city, pincode } = addr.billing;
+
+        if (street) {
+          if(!validator.isValidValue(street))
+            return res.status(400).send({status:false,message:"Invalid billing street"})
+          updatedData.address.billing.street = street
+        }
+
+        if (city) {
+          if(!validator.isValidValue(city))
+            return res.status(400).send({status:false,message:"Invalid billing city"})
+          updatedData.address.billing.city = city
+        }
+
+        if (pincode) {
+          if(!validator.isValidValue(pincode))
+            return res.status(400).send({status:false,message:"Invalid billing street"})
+          updatedData.address.billing.pincode = pincode
+        }
+      }
+
     }
-    //--------------------------------------------------------------------------------------------------
+   
 
     let modifiedData = await userModel.findByIdAndUpdate(
       { _id: userId },
