@@ -12,6 +12,7 @@ const registerUser = async (req, res) => {
     let files = req.files;
     let data = req.body;
 
+    // VALIDATIONS STARTS
     if (!validator.isValidRequest(data)) {
       return res
         .status(400)
@@ -27,13 +28,11 @@ const registerUser = async (req, res) => {
     }
 
     if (!validator.isValidName(fname)) {
-      return res
-        .status(400)
-        .send({
-          status: false,
-          message:
-            "Fname may contain only letters. Digits & Spaces are not allowed ",
-        });
+      return res.status(400).send({
+        status: false,
+        message:
+          "Fname may contain only letters. Digits & Spaces are not allowed ",
+      });
     }
 
     if (!validator.isValidValue(lname)) {
@@ -43,13 +42,11 @@ const registerUser = async (req, res) => {
     }
 
     if (!validator.isValidName(lname)) {
-      return res
-        .status(400)
-        .send({
-          status: false,
-          message:
-            "Lname may contain only letters. Digits & Spaces are not allowed",
-        });
+      return res.status(400).send({
+        status: false,
+        message:
+          "Lname may contain only letters. Digits & Spaces are not allowed",
+      });
     }
 
     if (!validator.isValidValue(email)) {
@@ -106,7 +103,6 @@ const registerUser = async (req, res) => {
     data.password = await bcrypt.hash(password, saltRounds);
 
     //ADDRESS VALIDATION
-
     if (!data.address || !isNaN(data.address)) {
       return res
         .status(400)
@@ -115,12 +111,10 @@ const registerUser = async (req, res) => {
     address = JSON.parse(data.address);
 
     if (!address.shipping || !address.billing) {
-      return res
-        .status(400)
-        .send({
-          status: false,
-          message: "shipping and billing address required",
-        });
+      return res.status(400).send({
+        status: false,
+        message: "shipping and billing address required",
+      });
     }
 
     if (!address.shipping.street || !address.billing.street) {
@@ -145,24 +139,20 @@ const registerUser = async (req, res) => {
     if (Sstreet) {
       let validateStreet = /^[a-zA-Z0-9]/;
       if (!validateStreet.test(Sstreet)) {
-        return res
-          .status(400)
-          .send({
-            status: false,
-            message: "enter valid street name in shipping",
-          });
+        return res.status(400).send({
+          status: false,
+          message: "enter valid street name in shipping",
+        });
       }
     }
 
     if (Scity) {
       let validateCity = /^[a-zA-Z0-9]/;
       if (!validateCity.test(Scity)) {
-        return res
-          .status(400)
-          .send({
-            status: false,
-            message: "enter valid city name in shipping",
-          });
+        return res.status(400).send({
+          status: false,
+          message: "enter valid city name in shipping",
+        });
       }
     }
     if (Spincode) {
@@ -175,29 +165,25 @@ const registerUser = async (req, res) => {
     }
 
     let Bstreet = address.billing.street;
-    let Bcity = address.billing.city; //billing
-    let Bpincode = parseInt(address.billing.pincode);
+    let Bcity = address.billing.city;
+    let Bpincode = parseInt(address.billing.pincode); //billing
     if (Bstreet) {
       let validateStreet = /^[a-zA-Z0-9]/;
       if (!validateStreet.test(Bstreet)) {
-        return res
-          .status(400)
-          .send({
-            status: false,
-            message: "enter valid street name in shipping",
-          });
-        }
+        return res.status(400).send({
+          status: false,
+          message: "enter valid street name in shipping",
+        });
+      }
     }
 
     if (Bcity) {
       let validateCity = /^[a-zA-Z0-9]/;
       if (!validateCity.test(Bcity)) {
-        return res
-          .status(400)
-          .send({
-            status: false,
-            message: "enter valid city name in shipping",
-          });
+        return res.status(400).send({
+          status: false,
+          message: "enter valid city name in shipping",
+        });
       }
     }
     if (Bpincode) {
@@ -219,6 +205,11 @@ const registerUser = async (req, res) => {
             .send({ status: false, message: "only image format is accept" }); ///Added
 
     if (files.length > 0) {
+      if (!validator.validFormat(files[0].originalname)) {
+        return res
+          .status(400)
+          .send({ status: false, message: "only image format is accept" });
+      }
       data.profileImage = await aws_config.uploadFile(files[0]);
     } else {
       return res
@@ -233,7 +224,7 @@ const registerUser = async (req, res) => {
   } catch (err) {
     if (err instanceof SyntaxError) {
       return res
-        .status(500)
+        .status(400)
         .send({ status: false, message: "Address should be in Object format" });
     } else {
       return res
@@ -285,7 +276,7 @@ let login = async (req, res) => {
         .send({ status: false, message: "Password is not correct" });
     }
 
-    /*-------------------------------------------GENERATE TOKEN----------------------------------------------*/
+    //GENERATE TOKEN
 
     let date = Date.now();
     let createTime = Math.floor(date / 1000);
@@ -323,17 +314,12 @@ const getUserDetails = async (req, res) => {
       });
 
     const profile = await userModel.findOne({ _id: userId });
+    console.log(profile);
 
     if (!profile)
       return res.status(404).send({
         status: false,
         message: "User Id doesn't exist.Please enter another Id",
-      });
-
-    if (profile._id.toString() !== req.userId)
-      return res.status(403).send({
-        status: false,
-        message: "Unauthorized access! User's info doesn't match",
       });
 
     return res.status(200).send({
@@ -368,62 +354,62 @@ const updateUser = async (req, res) => {
       });
 
     let data = req.body;
-    let files = req.files;
 
     if (!validator.isValidRequest(data) && !files) {
       return res
         .status(400)
-        .send({ status: false, message: "Body can not be empty" });
+        .send({ status: false, message: "Nothing to update" });
     }
 
-    let { fname, lname, email, phone, password } = data;
+    let { fname, lname, email, phone, password, address } = data;
     let updatedData = {};
 
-    if (Object.keys(data).includes("fname")) {
-      
+    let files = req.files;
+    if (files && files.length > 0) {
+      let uploadFileUrl = await aws_config.uploadFile(files[0]);
+      updatedData.profileImage = uploadFileUrl;
+    } else {
+      updatedData.profileImage = profile.profileImage;
+    }
+
+    if (fname) {
       if (!validator.isValidValue(fname)) {
         return res
           .status(400)
           .send({ status: false, message: "Fname can not be empty" });
       }
       if (!validator.isValidName(fname)) {
-        return res
-          .status(400)
-          .send({
-            status: false,
-            message:
-              "Fname may contain only letters. Digits & Spaces are not allowed",
-          });
+        return res.status(400).send({
+          status: false,
+          message:
+            "Fname may contain only letters. Digits & Spaces are not allowed",
+        });
       }
       updatedData.fname = fname;
     }
 
-    if (Object.keys(data).includes("lname")) {
+    if (lname) {
       if (!validator.isValidValue(lname)) {
         return res
           .status(400)
           .send({ status: false, message: "Lname can not be empty" });
       }
       if (!validator.isValidName(lname)) {
-        return res
-          .status(400)
-          .send({
-            status: false,
-            message:
-              "Lname may contain only letters. Digits & Spaces are not allowed",
-          });
+        return res.status(400).send({
+          status: false,
+          message:
+            "Lname may contain only letters. Digits & Spaces are not allowed",
+        });
       }
       updatedData.lname = lname;
     }
 
-    if (Object.keys(data).includes("email")) {
+    if (email) {
       if (!validator.isValidEmail(email)) {
-        return res
-          .status(400)
-          .send({
-            status: false,
-            message: "Entered email is invalid or empty",
-          });
+        return res.status(400).send({
+          status: false,
+          message: "Entered email is invalid or empty",
+        });
       }
       let emailExist = await userModel.findOne({ email });
       if (emailExist) {
@@ -434,14 +420,12 @@ const updateUser = async (req, res) => {
       updatedData.email = email;
     }
 
-    if (Object.keys(data).includes("phone")) {
+    if (phone) {
       if (!validator.isValidPhone(phone)) {
-        return res
-          .status(400)
-          .send({
-            status: false,
-            message: "Entered phone number is invalid or empty",
-          });
+        return res.status(400).send({
+          status: false,
+          message: "Entered phone number is invalid or empty",
+        });
       }
       let phoneExist = await userModel.findOne({ phone });
       if (phoneExist) {
@@ -453,7 +437,7 @@ const updateUser = async (req, res) => {
       updatedData.phone = phone;
     }
 
-    if (Object.keys(data).includes("password")) {
+    if (password) {
       if (!validator.isValidValue(password)) {
         return res
           .status(400)
@@ -470,83 +454,38 @@ const updateUser = async (req, res) => {
       updatedData.password = password;
     }
 
-    if (files && files.length > 0) {
-      let uploadFileUrl = await aws_config.uploadFile(files[0]);
-      updatedData.profileImage = uploadFileUrl;
-    } else {
-      updatedData.profileImage = profile.profileImage;
+    if (typeof address != "object") {
+      return res.status(400).send({
+        status: false,
+        message: "address should be a  valid object",
+      });
     }
 
-    //Address is still to do
-    // address = JSON.parse(data.address)
-    // console.log(address)
+    if (address) {
+      let addr = JSON.parse(address);
+      if (addr.shipping) {
+        let { street, city, pincode } = addr.shipping;
 
+        if (street) {
+          if(!validator.isValidValue(street))
+            return res.status(400).send({status:false,message:"Invalid shipping street"})
+          updatedData.address.shipping.street = street
+        }
 
-    if (Object.keys(data).includes("address")) {
-      if (!data.address || !isNaN(data.address)) {
-        return res
-          .status(400)
-          .send({ status: false, message: "Valid address is required" });
+        if (city) {
+          if(!validator.isValidValue(city))
+            return res.status(400).send({status:false,message:"Invalid shipping city"})
+          updatedData.address.shipping.city = city
+        }
+
+        if (pincode) {
+          if(!validator.isValidValue(pincode))
+            return res.status(400).send({status:false,message:"Invalid shipping street"})
+          updatedData.address.shipping.pincode = pincode
+        }
       }
-      if (typeof address != "object")
-        return res
-          .status(400)
-          .send({
-            status: false,
-            message: "address should be a  valid object",
-          });
-
-      address = JSON.parse(data.address);
-      
-
-      if (!validator.isValidValue(address.shipping.street)) {
-        return res
-          .status(400)
-          .send({ status: true, message: " Street address is required" });
-      }
-
-      updatedData["address.shipping.street"] = address.shipping.street;
-
-      if (!validator.isValidValue(address.shipping.city)) {
-        return res
-          .status(400)
-          .send({ status: true, message: " city address is required" });
-      }
-
-      updatedData["address.shipping.city"] = address.shipping.city;
-
-      if (!validator.isValidValue(address.shipping.pincode)) {
-        return res
-          .status(400)
-          .send({ status: true, message: " pincode address is required" });
-      }
-
-      updatedData["address.shipping.pincode"] = address.shipping.pincode;
-
-      if (!validator.isValidValue(address.billing.street)) {
-        return res
-          .status(400)
-          .send({ status: true, message: " Street address is required" });
-      }
-
-      updatedData["address.billing.street"] = address.billing.street;
-
-      if (!validator.isValidValue(address.billing.city)) {
-        return res
-          .status(400)
-          .send({ status: true, message: " city address is required" });
-      }
-
-      updatedData["address.billing.city"] = address.billing.city;
-
-      if (!validator.isValidValue(address.billing.pincode)) {
-        return res
-          .status(400)
-          .send({ status: true, message: " pincode address is required" });
-      }
-
-      updatedData["address.billing.pincode"] = address.billing.pincode;
     }
+    //--------------------------------------------------------------------------------------------------
 
     let modifiedData = await userModel.findByIdAndUpdate(
       { _id: userId },
@@ -560,8 +499,14 @@ const updateUser = async (req, res) => {
       data: modifiedData,
     });
   } catch (error) {
-    if (error instanceof SyntaxError)
-      return res.status(400).send({ status: false, message: "Invalid Object" });
+    if (error instanceof SyntaxError) {
+      return res
+        .status(400)
+        .send({
+          status: false,
+          message: "Address is not in valid Object format ",
+        });
+    }
     res.status(500).send({ status: false, message: error.message });
   }
 };

@@ -2,6 +2,8 @@ const aws_config = require("../utils/aws-config");
 const validator = require("../utils/validator");
 const productModel = require("../model/productModel");
 
+
+
 /**********************************************GET PRODUCT BY ID API*******************************************/
 
 const createProduct = async (req, res) => {
@@ -53,10 +55,10 @@ const createProduct = async (req, res) => {
         .send({ status: false, message: "description is required" });
     }
 
-    if(!/^\d*[a-zA-Z][a-zA-Z\d\s.]*$/.test(description)) return res.status(400).send({status: false, message: "The description may contain letters and numbers, not only numbers"})
+    if(!validator.validDesc(description)) return res.status(400).send({status: false, message: "The description may contain letters and numbers, not only numbers"})
 
 
-
+    
     if (!validator.isValidNumber(price) || price < 0) {
       return res.status(400).send({
         status: false,
@@ -160,6 +162,9 @@ console.log(data.currencyId)
   }
 };
 
+
+
+
 /**********************************************GET PRODUCT BY ID API*******************************************/
 
 const getProductById = async (req, res) => {
@@ -196,45 +201,15 @@ const getProductsByFilters = async (req, res) => {
     const { size, title, priceGreaterThan, priceLessThan, priceSort } = data;
     const filterData = { isDeleted: false };
 
-    // if (data.hasOwnProperty("size")) {
-    //   if (!validator.isValidValue(size)) {
-    //     return res
-    //       .status(400)
-    //       .send({ status: false, message: "Enter a valid size" });
-    //   } else {
-    //     filterData.availableSizes = size;
-    //   }
-    // }
-
     if (data.hasOwnProperty("size")) {
       if (!validator.isValidValue(size)) {
-            return res
-              .status(400)
-              .send({ status: false, message: "Enter a valid size" });
-          }
-
-      let sizesArray = size.split(",").map(x=>x.toUpperCase()).map((x) => x.trim());
-
-      // for (let i = 0; i < sizesArray.length; i++) {
-      //   if (!["S", "XS", "M", "X", "L", "XXL", "XL"].includes(sizesArray[i])) {
-      //     return res.status(400).send({
-      //       status: false,
-      //       message:
-      //         "AvailableSizes should be among ['S','XS','M','X','L','XXL','XL']",
-      //     });
-      //   }
-      // }
-
-      if (Array.isArray(sizesArray)) {
-       filterData["size"] = [...new Set(sizesArray)];
+        return res
+          .status(400)
+          .send({ status: false, message: "Enter a valid size" });
+      } else {
+        filterData.availableSizes = size;
       }
     }
-console.log(filterData)
-
-
-
-
-
 
     if (data.hasOwnProperty("title")) {
       if (!validator.isValidValue(title)) {
@@ -313,6 +288,10 @@ console.log(filterData)
 };
  
 
+
+
+
+
 /**********************************************UPDATE PRODUCT API*******************************************/
 
 const updateProduct = async (req, res) => {
@@ -326,6 +305,7 @@ const updateProduct = async (req, res) => {
 
     let data = req.body;
     let files = req.files;
+
 
 
     if (!validator.isValidRequest(data) && !req.files) {
@@ -366,7 +346,7 @@ const updateProduct = async (req, res) => {
     }
 
     if (Object.keys(data).includes("description")) {
-      if (!validator.isValidValue(data.description) || validator.isValidNumber(data.description)) {
+      if (!validator.isValidValue(data.description) || validator.isValidDesc(data.description)) {
         return res
           .status(400)
           .send({ status: false, message: "description is not valid" });
@@ -408,6 +388,38 @@ const updateProduct = async (req, res) => {
         }
       }
 
+      
+      if (Object.keys(data).includes("isDeleted")) {
+        if (isDeleted!=false) {
+          return res.status(400).send({
+            status: false,
+            message: "isDeleted must be false",
+          });
+        }
+      }
+
+
+      if (Object.keys(data).includes("currencyFormat")) {
+        if (currencyFormat!="INR") {
+          return res.status(400).send({
+            status: false,
+            message: "currency Format must be INR",
+          });
+        }
+      }
+
+
+      if (Object.keys(data).includes("currencyId")) {
+        if (currencyId!="") {
+          return res.status(400).send({
+            status: false,
+            message: "currencyId must be ",
+          });
+        }
+      }
+
+
+
 
     if (Object.keys(data).includes("availableSizes")) {
       if (!validator.isValidValue(data.availableSizes)) {
@@ -441,28 +453,10 @@ const updateProduct = async (req, res) => {
       data.productImage = await aws_config.uploadFile(files[0]);
     }
 
-    // data.isDeleted=false
-    // data.currencyId="₹"
-    // data.currencyFormat="INR"
-    if (data.currencyFormat || data.currencyFormat == "") {
-      if (!validator.isValidValue(data.currencyFormat)) {
-        return res
-          .status(400)
-          .send({ status: false, message: "currencyFormat can not be empty" });
-      }
-      if (data.currencyFormat != "INR")
-        return res.status(400).send({
-          status: false,
-          message: "at least 'INR' currency is allowed",
-        });
-      data.currencyFormat = currencyFormat;
-    }
-
-    
 
 
-    let updateData = await productModel.findOneAndUpdate(
-      { _id: productId, isDeleted: false },data,{ new: true });
+
+    let updateData = await productModel.findOneAndUpdate({ _id: productId, isDeleted: false },data,{ new: true });
 
     if (!updateData)
       return res
@@ -473,10 +467,14 @@ const updateProduct = async (req, res) => {
       .status(200)
       .send({ status: true, message: "product is updated", data: updateData });
   } catch (error) {
-    console.log(error);
     res.status(500).send({ status: false, message: error.message });
   }
 };
+
+
+
+
+
 
 /**********************************************DELETE PRODUCT API*******************************************/
 
@@ -506,6 +504,7 @@ const deleteByProductId = async (req, res) => {
     res.status(500).send({ status: false, message: error.message });
   }
 };
+
 
 module.exports = {
   createProduct,
