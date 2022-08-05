@@ -36,13 +36,11 @@ const createOrder = async  (req, res) => {
         }
 
 
-        if(status){
-        if (!validator.validStatus(status)) {
-            return res.status(400).send({ status: false, message: "Please provide valid status" });
+        if (status) {
+            if (status !== 'pending') {
+                return res.status(400).send({ status: false, message: "status must be Pending when ordering" })
+            }
         }
-    }
-    else
-    status= "pending"
 
         let findUser = await userModel.findOne({ _id: userId });
 
@@ -71,7 +69,16 @@ const createOrder = async  (req, res) => {
         }
 
         let createOrder = await orderModel.create(order)
-        return res.status(201).send({ status: true, msg: "Order Created Successfully", data: createOrder })
+        if (status == 'pending' || createOrder.status == 'pending') {
+            await cartModel.findOneAndUpdate({ _id: cartId, userId: userId }, {
+                $set: {
+                    items: [],
+                    totalPrice: 0,
+                    totalItems: 0,
+                },
+            })
+        };
+        return res.status(201).send({ status: true, message: "Order placed successfully.", data: createOrder });
 
     } catch (err) {
         res.status(500).send({ status: false, msg: err.message })
@@ -86,18 +93,19 @@ const createOrder = async  (req, res) => {
 
 
 
-const updateOrder = async function (req, res) {
+const updateOrder = async (req, res) => {
     try {
         let userId = req.params.userId;
         const { orderId, status } = req.body;
 
-        if (!(validator.isValidObjectId(userId))) {
-            return res.status(400).send({ status: false, message: "Provide a valid userId" });
-        }
-
 
         if (!validator.isValidRequest(req.body)) {
             return res.status(400).send({ status: false, message: "Please provide body" });
+        }
+
+        
+        if (!(validator.isValidObjectId(userId))) {
+            return res.status(400).send({ status: false, message: "Provide a valid userId" });
         }
 
         if (!(validator.isValidObjectId(orderId))) {
@@ -105,30 +113,35 @@ const updateOrder = async function (req, res) {
         }
 
         if (!validator.validStatus(status)) {
-            return res.status(400).send({ status: false, message: "Please provide valid status" });
+            return res.status(400).send({ status: false, message: "Status can be completed or cancelled only" });
         }
 
-        let findUser = await userModel.findOne({ _id: userId })
-        if (!findUser) {
-            return res.status(404).send({ status: false, message: "User Id not found" })
+        if (status == 'pending') {
+            return res.status(400).send({ status: false, message: "status can not be pending during updation" })
         }
 
-        let findOrder = await orderModel.findOne({ _id: orderId, userId: userId })
+
+        let findOrder = await orderModel.findOne({ _id: orderId, isDeleted:false,userId: userId })
         if (!findOrder) {
-            return res.status(404).send({ status: false, message: "order id or user id does not exist" })
+            return res.status(404).send({ status: false, message: "Order id does not exist for this UserId" })
         }
 
-        let checkCancel = findOrder.cancellable
-        let statusCancel = findOrder.status
-        if (statusCancel == "completed" || statusCancel == "cancelled") {
-            return res.status(400).send({ status: false, msg: "status cannot be changed" })
+        if (status == 'completed' && (findOrder.status == 'completed' || findOrder.status == 'cancelled')) {
+            return res.status(400).send({ status: false, message: `Order status can not be changed after ${order.status}` })
         }
 
-        if (checkCancel) {
-            let cancelOrder = await orderModel.findOneAndUpdate({ _id: orderId }, { status: status }, { new: true})
-            return res.status(200).send({ status : false, data : cancelOrder})
-        } else {
-            return res.status(400).send({ status : false, msg : "order is not cancellable"})
+        if (status == 'cancelled' && (findOrder.status == 'completed' || findOrder.status == 'cancelled')) {
+            return res.status(400).send({ status: false, message: `Order status can not be changed after ${order.status}` })
+        }
+
+        if (status == 'completed' && findOrder.status == 'pending') {
+            const orderCompleted = await orderModel.findOneAndUpdate({ _id: orderId }, { $set: { status: 'completed' } }, { new: true })
+            return res.status(200).send({ status: true, message: "Order is completed", data: orderCompleted })
+        }
+
+        if (status == 'cancelled' && findOrder.status == 'pending') {
+            const orderCancelled = await orderModel.findOneAndUpdate({ _id: orderId }, { $set: { status: 'cancelled' } }, { new: true })
+            return res.status(200).send({ status: false, message: "Order is cancelled", data: orderCancelled })
         }
 
     } catch (err) {

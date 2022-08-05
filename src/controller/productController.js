@@ -55,7 +55,7 @@ const createProduct = async (req, res) => {
         .send({ status: false, message: "description is required" });
     }
 
-    if(!/^\d*[a-zA-Z][a-zA-Z\d\s.]*$/.test(description)) return res.status(400).send({status: false, message: "The description may contain letters and numbers, not only numbers"})
+    if(!validator.validDesc(description)) return res.status(400).send({status: false, message: "The description may contain letters and numbers, not only numbers"})
 
 
     
@@ -345,7 +345,7 @@ const updateProduct = async (req, res) => {
     }
 
     if (Object.keys(data).includes("description")) {
-      if (!validator.isValidValue(data.description) || validator.isValidNumber(data.description)) {
+      if (!validator.isValidValue(data.description) || validator.isValidDesc(data.description)) {
         return res
           .status(400)
           .send({ status: false, message: "description is not valid" });
@@ -387,6 +387,38 @@ const updateProduct = async (req, res) => {
         }
       }
 
+      
+      if (Object.keys(data).includes("isDeleted")) {
+        if (isDeleted!=false) {
+          return res.status(400).send({
+            status: false,
+            message: "isDeleted must be false",
+          });
+        }
+      }
+
+
+      if (Object.keys(data).includes("currencyFormat")) {
+        if (currencyFormat!="INR") {
+          return res.status(400).send({
+            status: false,
+            message: "currency Format must be INR",
+          });
+        }
+      }
+
+
+      if (Object.keys(data).includes("currencyId")) {
+        if (currencyId!="") {
+          return res.status(400).send({
+            status: false,
+            message: "currencyId must be ",
+          });
+        }
+      }
+
+
+
 
     if (Object.keys(data).includes("availableSizes")) {
       if (!validator.isValidValue(data.availableSizes)) {
@@ -420,14 +452,10 @@ const updateProduct = async (req, res) => {
       data.productImage = await aws_config.uploadFile(files[0]);
     }
 
-//???????????????????????????????????
-    data.isDeleted=false
-    data.currencyId=
-    data.currencyFormat="INR"
-//???????????????????????????????????
 
-    let updateData = await productModel.findOneAndUpdate(
-      { _id: productId, isDeleted: false },data,{ new: true });
+
+
+    let updateData = await productModel.findOneAndUpdate({ _id: productId, isDeleted: false },data,{ new: true });
 
     if (!updateData)
       return res
@@ -438,7 +466,6 @@ const updateProduct = async (req, res) => {
       .status(200)
       .send({ status: true, message: "product is updated", data: updateData });
   } catch (error) {
-    console.log(error);
     res.status(500).send({ status: false, message: error.message });
   }
 };
