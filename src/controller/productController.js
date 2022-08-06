@@ -201,16 +201,17 @@ const getProductsByFilters = async (req, res) => {
     const { size, title, priceGreaterThan, priceLessThan, priceSort } = data;
     const filterData = { isDeleted: false };
 
-    if (data.hasOwnProperty("size")) {
-      if (!validator.isValidValue(size)) {
-        return res
-          .status(400)
-          .send({ status: false, message: "Enter a valid size" });
-      } else {
-        filterData.availableSizes = size;
-      }
-    }
-
+    // if (data.hasOwnProperty("size")) {
+    //   if (!validator.isValidValue(size)) {
+    //     return res
+    //       .status(400)
+    //       .send({ status: false, message: "Enter a valid size" });
+    //   } else {
+    //     filterData.availableSizes =size;
+    //   }
+    // }
+ 
+    
     if (data.hasOwnProperty("title")) {
       if (!validator.isValidValue(title)) {
         return res
@@ -456,7 +457,7 @@ const updateProduct = async (req, res) => {
 
 
 
-    let updateData = await productModel.findOneAndUpdate({ _id: productId, isDeleted: false },data,{ new: true });
+    let updateData = await productModel.findOneAndUpdate({ _id: productId, isDeleted: false },{data,$push:{availableSizes:data.availableSizes}},{ new: true });
 
     if (!updateData)
       return res

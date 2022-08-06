@@ -43,7 +43,11 @@ const validDesc = function(value){
 
 const validStatus = function(value){
   return ["pending", "completed", "cancelled"].indexOf(value) !== -1;
+}  
+const isValidPincode = (pin) => {
+  if (/^[1-9][0-9]{5}$/.test(pin))
+      return true
 }
 
 
-module.exports={isValidRequest, isValidValue ,isValidNumber , isValidObjectId, isValidName, isValidEmail, isValidPhone, validFormat,validDesc,validStatus}
+module.exports={isValidRequest, isValidValue ,isValidNumber , isValidObjectId, isValidName, isValidEmail, isValidPhone, validFormat,validDesc,validStatus,isValidPincode}
